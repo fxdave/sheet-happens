@@ -7,6 +7,7 @@ import { useEffect, useRef, type ReactNode, type RefObject, type TouchEvent } fr
 import { DayRibbon, type DayRibbonLabels } from "@/src/components/sheet/DayRibbon";
 import type { DayColumnHeaderDay } from "@/src/components/sheet/DayColumnHeader";
 import { TIME_LAYOUT_GROUP_ID, viewVariants, type TimeMove } from "@/src/lib/motion";
+import { useResourceSaver } from "@/src/lib/use-resource-saver";
 import { DAILY_SOFT_WARNING_MINUTES } from "@/src/lib/time-entry-limits";
 
 import {
@@ -200,6 +201,8 @@ export function TimeZoomShell({
     if (!active || active === document.body || leftWithOldView) focusFallback.current?.focus();
   }, [focusFallback, scope, viewKey]);
 
+  const resourceSaver = useResourceSaver();
+
   function handleTouchStart(event: TouchEvent<HTMLDivElement>) {
     const touch = event.touches[0];
     touchStart.current = touch ? { x: touch.clientX, y: touch.clientY } : null;
@@ -221,7 +224,7 @@ export function TimeZoomShell({
   }
 
   return (
-    <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion={resourceSaver ? "always" : "user"}>
       <LazyMotion strict features={loadMotionFeatures}>
         <LayoutGroup id={TIME_LAYOUT_GROUP_ID}>
           <div className="grid gap-4">

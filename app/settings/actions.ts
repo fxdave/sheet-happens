@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { getTranslations } from "next-intl/server";
 import { z } from "zod";
 
@@ -12,6 +12,7 @@ import {
 } from "@/src/server/auth/app-access";
 import { clearSecondFactorCookie } from "@/src/server/auth/second-factor";
 import { AuthenticationError, AuthorizationError } from "@/src/server/auth/session";
+import { resourceSaverCookieName, resourceSaverMaxAgeSeconds } from "@/src/lib/resource-saver";
 import { prisma } from "@/src/server/db/client";
 import { disconnectMcpConnection } from "@/src/server/mcp/connections";
 import {
@@ -196,6 +197,23 @@ export async function updateMemberDurationDisplayFormatAction(
           : t("errors.durationDisplayUpdateFailed"),
     };
   }
+}
+
+export async function updateResourceSaverAction(enabled: boolean): Promise<void> {
+  await requireActiveAppMemberForAction();
+  const cookieStore = await cookies();
+
+  if (enabled) {
+    cookieStore.set(resourceSaverCookieName, "1", {
+      maxAge: resourceSaverMaxAgeSeconds,
+      path: "/",
+      sameSite: "lax",
+    });
+  } else {
+    cookieStore.delete(resourceSaverCookieName);
+  }
+
+  revalidatePath("/", "layout");
 }
 
 export async function renamePasskeyAction(

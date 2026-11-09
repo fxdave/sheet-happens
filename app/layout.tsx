@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages } from "next-intl/server";
 
@@ -6,6 +7,7 @@ import "./globals.css";
 import { RunningTimerProvider } from "@/src/components/layout/RunningTimerProvider";
 import { SheetToaster } from "@/src/components/sheet/Toast";
 import { ThemeProvider } from "@/src/components/layout/ThemeProvider";
+import { resourceSaverCookieName } from "@/src/lib/resource-saver";
 import { getShellRunningTimer } from "@/src/server/time-tracking/shell-timer";
 
 import { stopRunningTimerAction } from "./time/actions";
@@ -17,7 +19,7 @@ export const metadata: Metadata = {
 };
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [locale, messages, runningTimer] = await Promise.all([
+  const [locale, messages, runningTimer, cookieStore] = await Promise.all([
     getLocale(),
     getMessages(),
     /*
@@ -27,7 +29,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       not a signed-in active member, which is what makes it safe above the auth screens too.
     */
     getShellRunningTimer(),
+    cookies(),
   ]);
+  const resourceSaver = cookieStore.get(resourceSaverCookieName)?.value === "1";
 
   return (
     /*
@@ -38,7 +42,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
       difference `suppressHydrationWarning` covers. Keeping it a constant also means the
       `router.refresh()` on language change cannot clobber what the script wrote.
     */
-    <html lang={locale} className="dark" suppressHydrationWarning>
+    <html
+      lang={locale}
+      className="dark"
+      data-resource-saver={resourceSaver ? "" : undefined}
+      suppressHydrationWarning
+    >
       {/*
         Only the two Lexend subsets are preloaded, and both unconditionally. `@font-face` rules in a
         stylesheet are not fetched until the browser has matched them against laid-out text, so the

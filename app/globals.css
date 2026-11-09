@@ -1438,3 +1438,25 @@ body,
     display: none;
   }
 }
+
+/* Resource saver (Settings → Preferences, per-browser cookie). The blurred, drifting blobs are the
+   expensive part — Firefox re-rasterises a 40px blur over half the viewport on every frame — so
+   the decorative layers go entirely, along with every loop, transition and backdrop blur. */
+[data-resource-saver] .sheet-atmosphere,
+[data-resource-saver] .sheet-grain {
+  display: none;
+}
+
+[data-resource-saver] *,
+[data-resource-saver] *::before,
+[data-resource-saver] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  backdrop-filter: none !important;
+}
+
+[data-resource-saver] .auth-gyro-pulse,
+[data-resource-saver] .animate-ping {
+  display: none;
+}

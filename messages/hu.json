@@ -2764,6 +2764,10 @@
         "decimalExample": "Példa: 3 óra 23 perc így jelenik meg: 3,38 h.",
         "hoursMinutesExample": "Példa: 3 óra 23 perc így jelenik meg: 3:23.",
         "save": "Megjelenítés mentése"
+      },
+      "resourceSaver": {
+        "label": "Erőforrás-kímélő mód",
+        "description": "Kikapcsolja az animált hátteret, az animációkat és az elmosási effekteket. Akkor hasznos, ha a lap folyamatosan terheli a processzort. Csak ebben a böngészőben érvényes."
       }
     },
     "notifications": {

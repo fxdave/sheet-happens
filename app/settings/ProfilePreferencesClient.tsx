@@ -1,13 +1,14 @@
 "use client";
 
-import { Clock3, Eye, ImageUp, Trash2 } from "lucide-react";
-import { useActionState, useRef, useState, useTransition } from "react";
+import { Clock3, Eye, ImageUp, Leaf, Trash2 } from "lucide-react";
+import { useActionState, useOptimistic, useRef, useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 
 import { Avatar } from "@/src/components/ui/Avatar";
 import { Button } from "@/src/components/ui/Button";
 import { Combobox } from "@/src/components/ui/Combobox";
 import { SegmentedControl } from "@/src/components/ui/SegmentedControl";
+import { Switch } from "@/src/components/ui/Switch";
 import type { DurationDisplayFormat } from "@/src/lib/formatting";
 import {
   Dialog,
@@ -16,11 +17,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/src/components/ui/Dialog";
+import { useResourceSaver } from "@/src/lib/use-resource-saver";
 import { cn } from "@/src/lib/utils";
 import {
   deleteMemberAvatarAction,
   updateMemberDurationDisplayFormatAction,
   updateMemberTimezoneAction,
+  updateResourceSaverAction,
   uploadMemberAvatarAction,
 } from "./actions";
 import type { MemberPreferenceActionState } from "./actions.types";
@@ -63,6 +66,16 @@ export function ProfilePreferencesClient({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [selectedFileName, setSelectedFileName] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
+  const resourceSaver = useResourceSaver();
+  const [optimisticResourceSaver, setOptimisticResourceSaver] = useOptimistic(resourceSaver);
+  const [, startResourceSaverTransition] = useTransition();
+
+  function toggleResourceSaver(enabled: boolean) {
+    startResourceSaverTransition(async () => {
+      setOptimisticResourceSaver(enabled);
+      await updateResourceSaverAction(enabled);
+    });
+  }
 
   function deleteAvatar() {
     startDeleteTransition(async () => {
@@ -209,6 +222,26 @@ export function ProfilePreferencesClient({
           </p>
           <ActionNotice state={durationState} />
         </form>
+      </div>
+
+      <div className="border-t border-border pt-6">
+        <div className="flex max-w-xl items-start justify-between gap-4">
+          <div>
+            <label
+              htmlFor="settings-resource-saver"
+              className="flex items-center gap-2 text-xs font-semibold uppercase text-muted-foreground"
+            >
+              <Leaf className="size-4" aria-hidden="true" />
+              {t("resourceSaver.label")}
+            </label>
+            <p className="mt-1 text-sm text-muted-foreground">{t("resourceSaver.description")}</p>
+          </div>
+          <Switch
+            id="settings-resource-saver"
+            checked={optimisticResourceSaver}
+            onCheckedChange={toggleResourceSaver}
+          />
+        </div>
       </div>
 
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>

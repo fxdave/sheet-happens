@@ -2764,6 +2764,10 @@
         "decimalExample": "Example: 3 hours 23 minutes appears as 3.38 h.",
         "hoursMinutesExample": "Example: 3 hours 23 minutes appears as 3:23.",
         "save": "Save display"
+      },
+      "resourceSaver": {
+        "label": "Resource saver",
+        "description": "Turns off the animated background, animations and blur effects. Use it when the tab keeps the CPU busy. Applies to this browser only."
       }
     },
     "notifications": {
