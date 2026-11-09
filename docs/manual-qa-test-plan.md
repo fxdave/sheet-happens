@@ -4197,6 +4197,21 @@ word used to come out as the family name ("Hi, Szabó!").
   are both greeted by first name.
 - A member with a two-part first name (e.g. "Anna Mária") is greeted with both parts.
 
+## Resource Saver
+
+Settings → Preferences has a Resource saver switch for browsers that spend CPU on the animated
+background. It is stored in a cookie, so it applies to the browser it was set in, not the account.
+
+- Turning it on hides the drifting background shapes and grain at once, without a reload, and they
+  stay hidden on `/time`, `/dashboard` and the sign-in screen after navigating or reloading.
+- With it on, nothing on `/time` animates: changing scope or lens swaps the view instantly, and the
+  running-timer dot does not pulse. Spinners still appear while something loads.
+- With it on, an idle `/time` tab in Firefox stays near 0% CPU in the task manager; with it off the
+  same tab shows the background's steady cost.
+- Turning it off restores the background and animations; a second browser signed in as the same
+  member is unaffected either way.
+- The label and description read correctly in Hungarian and English, in both themes.
+
 ## Regression Checklist For Every Release
 
 - An employee can record vacation and sick leave from yesterday on, a half day only on a single
