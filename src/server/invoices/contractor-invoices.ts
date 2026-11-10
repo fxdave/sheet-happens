@@ -1,5 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
 
+import { z } from "zod";
+
+import { isSupportedCurrencyCode } from "@/src/lib/member-preferences";
 import { prisma } from "@/src/server/db/client";
 import type { Prisma } from "@/src/server/db/generated/client";
 import { getObjectStorage, type ObjectStorage } from "@/src/server/storage";
@@ -7,16 +10,37 @@ import { formatDateOnly, getMonthStart, normalizeDateOnly } from "@/src/server/t
 
 export const CONTRACTOR_INVOICE_MAX_BYTES = 10 * 1024 * 1024;
 
+/** The human-entered review metadata, shared by the upload form's action and the REST API. */
+export const contractorInvoiceFieldsSchema = z.object({
+  invoiceRole: z.enum(["ORIGINAL", "CANCELLATION", "REPLACEMENT"]),
+  invoiceNumber: z.string().trim().min(1).max(120),
+  declaredAmount: z
+    .string()
+    .trim()
+    .regex(/^-?\d+(\.\d{1,2})?$/),
+  currencyCode: z.string().trim().min(3).max(3),
+});
+
+/** Browsers send an empty or generic type for some PDFs; the name is the fallback signal. */
+export function normalizeInvoiceContentType(file: { type: string; name: string }) {
+  return file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
+    ? "application/pdf"
+    : file.type;
+}
+
 export type ContractorInvoiceUploadRequestMetadata = {
   ipAddress?: string | null;
   userAgent?: string | null;
+  channel?: "WEB" | "API";
+  clientId?: string;
 };
 
 export type UploadContractorInvoiceInput = {
   memberId: string;
   actorMemberId: string;
   periodStart: Date;
-  invoiceRole: ContractorInvoiceUploadRole;
+  /** The step the caller expects; omitted, the workflow's next step is taken. */
+  invoiceRole?: ContractorInvoiceUploadRole;
   invoiceNumber: string;
   declaredAmount: string;
   currencyCode: string;
@@ -139,7 +163,7 @@ export async function uploadContractorInvoice(
         invoices: timesheet.invoices,
       });
 
-      if (input.invoiceRole !== workflow.invoiceRole) {
+      if (input.invoiceRole && input.invoiceRole !== workflow.invoiceRole) {
         throw new ContractorInvoiceUploadError(getInvoiceRoleMismatchMessage(workflow.invoiceRole));
       }
 
@@ -382,7 +406,7 @@ function validateInvoiceUploadInput(input: {
     throw new ContractorInvoiceUploadError("Invoice amount is invalid.");
   }
 
-  if (!/^[A-Z]{3}$/.test(input.currencyCode)) {
+  if (!isSupportedCurrencyCode(input.currencyCode)) {
     throw new ContractorInvoiceUploadError("Invoice currency is invalid.");
   }
 

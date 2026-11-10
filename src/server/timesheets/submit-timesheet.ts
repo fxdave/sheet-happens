@@ -18,6 +18,8 @@ type TimesheetEventTypeRecord = "SUBMITTED" | "RESUBMITTED";
 export type TimesheetSubmissionRequestMetadata = {
   ipAddress?: string | null;
   userAgent?: string | null;
+  channel?: "WEB" | "API";
+  clientId?: string;
 };
 
 export type SubmitContractorTimesheetInput = {

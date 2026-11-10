@@ -13,7 +13,9 @@ import { AuthenticationError, AuthorizationError } from "@/src/server/auth/sessi
 import { Prisma } from "@/src/server/db/generated/client";
 import {
   CONTRACTOR_INVOICE_MAX_BYTES,
+  contractorInvoiceFieldsSchema,
   ContractorInvoiceUploadError,
+  normalizeInvoiceContentType,
   uploadContractorInvoice,
   type ContractorInvoiceUploadRequestMetadata,
 } from "@/src/server/invoices";
@@ -36,15 +38,8 @@ const submitTimesheetSchema = z.object({
   periodStart: z.string().trim().min(1),
 });
 
-const uploadInvoiceSchema = z.object({
+const uploadInvoiceSchema = contractorInvoiceFieldsSchema.extend({
   periodStart: z.string().trim().min(1),
-  invoiceRole: z.enum(["ORIGINAL", "CANCELLATION", "REPLACEMENT"]),
-  invoiceNumber: z.string().trim().min(1).max(120),
-  declaredAmount: z
-    .string()
-    .trim()
-    .regex(/^-?\d+(\.\d{1,2})?$/),
-  currencyCode: z.string().trim().min(3).max(3),
 });
 
 const submissionErrorKeys: Record<string, string> = {
@@ -177,10 +172,7 @@ export async function uploadContractorInvoiceAction(formData: FormData): Promise
     redirectToTimesheetsWithResult(month, "invoiceFileTooLarge");
   }
 
-  const normalizedContentType =
-    file.type === "application/pdf" || file.name.toLowerCase().endsWith(".pdf")
-      ? "application/pdf"
-      : file.type;
+  const normalizedContentType = normalizeInvoiceContentType(file);
   let result =
     parsed.data.invoiceRole === "CANCELLATION"
       ? "invoiceCancellationUploaded"

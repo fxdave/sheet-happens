@@ -53,7 +53,7 @@ export type TimeEntryTimingMode = "DURATION" | "INTERVAL";
 export type TimeTrackingRequestMetadata = {
   ipAddress?: string | null;
   userAgent?: string | null;
-  channel?: "WEB" | "MCP";
+  channel?: "WEB" | "MCP" | "API";
   clientId?: string;
 };
 
