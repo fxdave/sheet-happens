@@ -996,6 +996,29 @@ body,
   animation: sheet-shimmer 1.6s var(--ease-standard) infinite;
 }
 
+/* `/time` while a view loads: the old body yields to the skeleton after 120 ms. Steps, not motion,
+   so they hold under reduced motion too (that block shortens durations, never delays). */
+.time-pending-old {
+  animation: time-pending-hide 0s linear 120ms forwards;
+}
+
+.time-pending-skeleton {
+  visibility: hidden;
+  animation: time-pending-show 0s linear 120ms forwards;
+}
+
+@keyframes time-pending-hide {
+  to {
+    visibility: hidden;
+  }
+}
+
+@keyframes time-pending-show {
+  to {
+    visibility: visible;
+  }
+}
+
 @keyframes sheet-shimmer {
   from {
     background-position: -180% 0;

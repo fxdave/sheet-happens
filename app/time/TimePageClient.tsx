@@ -454,27 +454,23 @@ function TimePageContent({ data }: { data: TimePageData }) {
     </p>
   );
 
-  const body: ReactNode = target ? (
-    <TimeViewSkeleton
-      view={shownView}
-      label={t("tabs.loading", { view: t(`tabs.${shownView}`) })}
-    />
-  ) : data.view === "days" && view === "days" ? (
-    <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
-  ) : data.view === "weeks" && view === "weeks" ? (
-    <WeeksView
-      key={data.calendar.monthStart}
-      frame={data.frame}
-      calendar={data.calendar}
-      month={data.month}
-      actions={actions}
-      onNavigate={navigate}
-    />
-  ) : data.view === "months" && data.layout === "year" ? (
-    <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
-  ) : data.view === "months" ? (
-    <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
-  ) : null;
+  const loadedBody: ReactNode =
+    data.view === "days" && view === "days" ? (
+      <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
+    ) : data.view === "weeks" && view === "weeks" ? (
+      <WeeksView
+        key={data.calendar.monthStart}
+        frame={data.frame}
+        calendar={data.calendar}
+        month={data.month}
+        actions={actions}
+        onNavigate={navigate}
+      />
+    ) : data.view === "months" && data.layout === "year" ? (
+      <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
+    ) : data.view === "months" ? (
+      <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
+    ) : null;
 
   return (
     <div className="grid min-w-0 gap-4">
@@ -563,7 +559,22 @@ function TimePageContent({ data }: { data: TimePageData }) {
             switchView(value as TimeView);
           }}
         >
-          {body}
+          {target ? (
+            /* A cached view lands within a few frames, so the old body stays for 120 ms before the
+               skeleton replaces it: a fast switch never flashes the skeleton. */
+            <div className="grid min-w-0 [&>*]:[grid-area:1/1]">
+              <div inert className="time-pending-old min-w-0">
+                {loadedBody}
+              </div>
+              <TimeViewSkeleton
+                className="time-pending-skeleton"
+                view={shownView}
+                label={t("tabs.loading", { view: t(`tabs.${shownView}`) })}
+              />
+            </div>
+          ) : (
+            loadedBody
+          )}
         </TimeViewPanel>
       ) : (
         <div className="rounded-[var(--radius-lg)] border border-border bg-card px-6 py-12 text-center">
