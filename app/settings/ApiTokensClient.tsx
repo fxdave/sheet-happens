@@ -1,9 +1,13 @@
 "use client";
 
-import { AlertTriangle, Check, Copy, KeyRound, Plus, Trash2 } from "lucide-react";
+import { AlertTriangle, BookOpen, FileJson, KeyRound, Plus, Trash2 } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { useRef, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
+
+import { CopyValueClient } from "@/app/help/CopyValueClient";
 
 import { EmptyState } from "@/src/components/sheet/EmptyState";
 import { Badge } from "@/src/components/ui/Badge";
@@ -38,6 +42,8 @@ import type { SecuritySettingsActionState } from "./actions.types";
 
 export type ApiTokensClientProps = {
   tokens: readonly ApiTokenView[];
+  /** `authUrls.restApi`, so the URL and examples name this deployment. */
+  baseUrl: string;
   /** Admin scopes are offered only to admins; the server re-checks on create and on every call. */
   canGrantAdminScopes: boolean;
 };
@@ -49,7 +55,7 @@ function scopeKey(scope: ApiTokenScope) {
 
 const NAME_MAX_LENGTH = 80;
 
-export function ApiTokensClient({ tokens, canGrantAdminScopes }: ApiTokensClientProps) {
+export function ApiTokensClient({ tokens, baseUrl, canGrantAdminScopes }: ApiTokensClientProps) {
   const t = useTranslations("Settings.apiTokens");
   const locale = useLocale();
   const router = useRouter();
@@ -86,6 +92,33 @@ export function ApiTokensClient({ tokens, canGrantAdminScopes }: ApiTokensClient
 
       <div className="grid gap-3">
         <p className="text-sm text-muted-foreground">{t("intro")}</p>
+        <div className="grid gap-1">
+          <p className="text-xs font-semibold uppercase text-muted-foreground">
+            {t("baseUrlLabel")}
+          </p>
+          <CopyValueClient
+            value={baseUrl}
+            labels={{ copy: t("copyUrl"), copied: t("urlCopied"), failed: t("copyFailed") }}
+          />
+        </div>
+        <div className="flex flex-wrap gap-x-4 gap-y-2 text-sm font-semibold">
+          <Link
+            href={"/help?tab=api" as Route}
+            className="inline-flex items-center gap-1.5 text-accent hover:underline"
+          >
+            <BookOpen className="size-4" aria-hidden="true" />
+            {t("guideLink")}
+          </Link>
+          <a
+            href={`${baseUrl}/openapi.json`}
+            target="_blank"
+            rel="noreferrer"
+            className="inline-flex items-center gap-1.5 text-accent hover:underline"
+          >
+            <FileJson className="size-4" aria-hidden="true" />
+            {t("openApiLink")}
+          </a>
+        </div>
         <Button
           type="button"
           icon={Plus}
@@ -164,6 +197,7 @@ export function ApiTokensClient({ tokens, canGrantAdminScopes }: ApiTokensClient
       <CreateApiTokenDialog
         open={createOpen}
         canGrantAdminScopes={canGrantAdminScopes}
+        baseUrl={baseUrl}
         onOpenChange={setCreateOpen}
         onCreated={() => router.refresh()}
       />
@@ -217,11 +251,13 @@ function TokenDate({ label, children }: { label: string; children: React.ReactNo
 function CreateApiTokenDialog({
   open,
   canGrantAdminScopes,
+  baseUrl,
   onOpenChange,
   onCreated,
 }: {
   open: boolean;
   canGrantAdminScopes: boolean;
+  baseUrl: string;
   onOpenChange: (open: boolean) => void;
   onCreated: () => void;
 }) {
@@ -276,11 +312,34 @@ function CreateApiTokenDialog({
               <DialogTitle>{t("createdDialog.title")}</DialogTitle>
               <DialogDescription>{t("createdDialog.body")}</DialogDescription>
             </DialogHeader>
-            <TokenSecret token={createdToken} />
+            <CopyValueClient
+              value={createdToken}
+              valueLabel={t("createdDialog.tokenLabel")}
+              labels={{
+                copy: t("createdDialog.copy"),
+                copied: t("createdDialog.copied"),
+                failed: t("createdDialog.copyFailed"),
+              }}
+            />
             <p className="flex items-start gap-2 rounded-[var(--radius-md)] bg-warning-soft px-3 py-2 text-sm text-warning">
               <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
               {t("createdDialog.onceWarning")}
             </p>
+            <div className="grid min-w-0 gap-1">
+              <p className="text-xs font-semibold uppercase text-muted-foreground">
+                {t("createdDialog.exampleLabel")}
+              </p>
+              <CopyValueClient
+                value={exampleCurl(baseUrl, createdToken, scopes)}
+                variant="block"
+                valueLabel={t("createdDialog.exampleLabel")}
+                labels={{
+                  copy: t("createdDialog.copyExample"),
+                  copied: t("createdDialog.exampleCopied"),
+                  failed: t("createdDialog.copyFailed"),
+                }}
+              />
+            </div>
             <DialogFooter>
               <DialogClose asChild>
                 <Button type="button">{t("createdDialog.done")}</Button>
@@ -392,46 +451,25 @@ function CreateApiTokenDialog({
   );
 }
 
-function TokenSecret({ token }: { token: string }) {
-  const t = useTranslations("Settings.apiTokens.createdDialog");
-  const [outcome, setOutcome] = useState<"idle" | "copied" | "failed">("idle");
-  const resetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+/** A first call the new token can actually make, using its own scopes. */
+function exampleCurl(baseUrl: string, token: string, scopes: readonly ApiTokenScope[]) {
+  const today = new Date();
+  const iso = (date: Date) =>
+    `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+  const weekAgo = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 6);
+  const auth = `curl -H "Authorization: Bearer ${token}"`;
 
-  async function copy() {
-    if (resetTimer.current) clearTimeout(resetTimer.current);
-
-    try {
-      await navigator.clipboard.writeText(token);
-      setOutcome("copied");
-      resetTimer.current = setTimeout(() => setOutcome("idle"), 4000);
-    } catch {
-      setOutcome("failed");
-    }
+  if (scopes.includes("hours:read")) {
+    return `${auth} \\\n  "${baseUrl}/hours?from=${iso(weekAgo)}&to=${iso(today)}"`;
   }
 
-  return (
-    <div className="grid gap-2">
-      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
-        <p
-          aria-label={t("tokenLabel")}
-          className="break-all rounded-[var(--radius-md)] border border-border bg-background/55 px-3 py-2 font-mono text-sm text-foreground"
-        >
-          {token}
-        </p>
-        <Button
-          type="button"
-          variant="soft"
-          size="sm"
-          icon={outcome === "copied" ? Check : Copy}
-          className="justify-self-start"
-          onClick={() => void copy()}
-        >
-          {t("copy")}
-        </Button>
-      </div>
-      <p role="status" className="min-h-5 text-sm leading-5 text-muted-foreground">
-        {outcome === "copied" ? t("copied") : outcome === "failed" ? t("copyFailed") : null}
-      </p>
-    </div>
-  );
+  if (scopes.includes("hours:read:all")) {
+    return `${auth} \\\n  "${baseUrl}/hours?from=${iso(weekAgo)}&to=${iso(today)}&memberId=all"`;
+  }
+
+  if (scopes.includes("timesheets:read")) {
+    return `${auth} \\\n  "${baseUrl}/timesheets?year=${today.getFullYear()}"`;
+  }
+
+  return `${auth} -X POST \\\n  "${baseUrl}/timesheets/YYYY-MM/submit"`;
 }

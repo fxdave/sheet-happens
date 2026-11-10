@@ -24,6 +24,7 @@ import {
   sanitizeCallbackURL,
 } from "@/src/server/auth/app-access";
 import { listApiTokens } from "@/src/server/api-tokens";
+import { authUrls } from "@/src/server/auth/auth-urls";
 import { getGoogleAuthSettings } from "@/src/server/auth/sign-in-methods";
 import { prisma } from "@/src/server/db/client";
 import { listMcpConnections, type McpConnection } from "@/src/server/mcp/connections";
@@ -147,7 +148,11 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             },
           }}
           connectedApps={toConnectedAppViews(connectedApps)}
-          apiTokens={{ tokens: apiTokens, canGrantAdminScopes: member.role === "ADMIN" }}
+          apiTokens={{
+            tokens: apiTokens,
+            baseUrl: authUrls.restApi,
+            canGrantAdminScopes: member.role === "ADMIN",
+          }}
           notificationConfiguration={notificationConfiguration}
         />
       </section>

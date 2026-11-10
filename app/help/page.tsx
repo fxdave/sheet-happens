@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { BookOpen, FileText, Lock, Pencil, Plug, type LucideIcon } from "lucide-react";
+import { BookOpen, Braces, FileText, Lock, Pencil, Plug, type LucideIcon } from "lucide-react";
 import { getLocale, getTranslations } from "next-intl/server";
 
 import { AppShell } from "@/src/components/layout/AppShell";
@@ -32,6 +32,14 @@ import {
   type ManualTopicAudience,
   type ManualTopicView,
 } from "@/src/server/info-pages";
+import {
+  addDays,
+  formatDateOnly,
+  getMonthStart,
+  getTodayIsoInTimezone,
+  parseDateOnly,
+} from "@/src/server/time-tracking";
+import { ApiPanel } from "./ApiPanel";
 import { ConnectorUrlClient } from "./ConnectorUrlClient";
 
 type HelpPageProps = {
@@ -40,7 +48,7 @@ type HelpPageProps = {
   }>;
 };
 
-type HelpTab = "welcome" | "manual" | "connector";
+type HelpTab = "welcome" | "manual" | "connector" | "api";
 
 export const dynamic = "force-dynamic";
 
@@ -85,7 +93,7 @@ export default async function HelpPage({ searchParams }: HelpPageProps) {
         />
 
         <nav
-          className="inline-flex w-fit rounded-[var(--radius-pill)] border border-border bg-secondary p-1"
+          className="inline-flex w-fit max-w-full flex-wrap rounded-[var(--radius-pill)] border border-border bg-secondary p-1"
           aria-label={t("tabs.label")}
         >
           <HelpTabLink active={activeTab === "welcome"} href="/help?tab=welcome" icon={FileText}>
@@ -97,9 +105,18 @@ export default async function HelpPage({ searchParams }: HelpPageProps) {
           <HelpTabLink active={activeTab === "connector"} href="/help?tab=connector" icon={Plug}>
             {t("tabs.connector")}
           </HelpTabLink>
+          <HelpTabLink active={activeTab === "api"} href="/help?tab=api" icon={Braces}>
+            {t("tabs.api")}
+          </HelpTabLink>
         </nav>
 
-        {activeTab === "connector" ? (
+        {activeTab === "api" ? (
+          <ApiPanel
+            baseUrl={authUrls.restApi}
+            isAdmin={member.role === "ADMIN"}
+            {...apiExampleDates(member.timezone)}
+          />
+        ) : activeTab === "connector" ? (
           /*
            * The connector recipe is static copy, unlike the Welcome tab: it describes how Claude is
            * wired to this deployment, which is a property of the code and not something an admin
@@ -380,6 +397,19 @@ function audienceLabel(
 function resolveTab(tab: string | undefined): HelpTab {
   if (tab === "manual") return "manual";
   if (tab === "connector") return "connector";
+  if (tab === "api") return "api";
 
   return "welcome";
+}
+
+/** Example dates for the curl recipes: the last seven days and the previous month, member-local. */
+function apiExampleDates(timezone: string) {
+  const today = parseDateOnly(getTodayIsoInTimezone(timezone));
+  const lastMonth = getMonthStart(addDays(getMonthStart(today), -1));
+
+  return {
+    today: formatDateOnly(today),
+    weekAgo: formatDateOnly(addDays(today, -6)),
+    lastMonth: formatDateOnly(lastMonth).slice(0, 7),
+  };
 }

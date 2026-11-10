@@ -370,7 +370,8 @@
       "label": "Súgó tartalom",
       "welcome": "Üdvözlő",
       "manual": "Kézikönyv",
-      "connector": "Claude connector"
+      "connector": "Claude connector",
+      "api": "REST API"
     },
     "actions": {
       "editWelcome": "Üdvözlő tartalom szerkesztése"
@@ -422,6 +423,52 @@
         "body": "A kapcsolatodat használó agent pontosan azt éri el, amit te a Sheet Happensben: a saját időbejegyzéseidet, a saját projektjeidet és a saját összesítéseidet. Más munkaóráit soha nem látja és nem módosítja, a beküldött timesheettel zárolt hónap pedig az agent számára is zárolva marad.",
         "disconnect": "Azt te döntöd el, meddig tart. Amíg a Beállításokban le nem választod, az alkalmazás a nevedben járhat el — akkor is, amikor épp nem használod.",
         "openConnectedApps": "Összekötött alkalmazások megnyitása"
+      }
+    },
+    "api": {
+      "badge": "REST API",
+      "title": "A Sheet Happens használata saját szkriptekből",
+      "description": "JSON API szkriptekhez és integrációkhoz: olvasd a munkaóráidat, kérdezd le egy hónap kimutatásának állapotát, küldd be jóváhagyásra, és töltsd fel a számlát. Ugyanazok a szabályok érvényesek, mint az alkalmazásban — a lezárt hónap lezárva marad.",
+      "baseUrlLabel": "Alap-URL",
+      "copy": "Másolás",
+      "copied": "A vágólapra került.",
+      "copyFailed": "A másolás nem sikerült. Jelöld ki a szöveget, és másold kézzel.",
+      "createToken": "Token létrehozása",
+      "openApi": "OpenAPI-leírás (JSON)",
+      "curlLabel": "Példa: {method} {path}",
+      "token": {
+        "title": "Token beszerzése",
+        "description": "Minden kérés egy személyes hozzáférési tokent küld az Authorization fejlécben.",
+        "step1": "Nyisd meg a Beállítások → API-tokenek részt, és kattints a Token létrehozása gombra.",
+        "step2": "Nevezd el, válaszd ki csak azokat a jogosultságokat, amelyekre a szkriptnek szüksége van, és add meg, mikor járjon le.",
+        "step3": "Azonnal másold ki a tokent — csak egyszer látható —, és így küldd: Authorization: Bearer A_TOKENED. Az alábbi példákhoz előbb állítsd be: export TOKEN=…"
+      },
+      "endpoints": {
+        "title": "Végpontok",
+        "description": "A dátumok ÉÉÉÉ-HH-NN, a hónapok ÉÉÉÉ-HH formátumúak, az időtartamok egész percek. Az egyes végpontokhoz szükséges jogosultság mellettük látható.",
+        "hours": "Az időbejegyzéseid egy időszakra (legfeljebb 92 nap), oldal- és időszak-összesítéssel. A visszaadott nextCursor értékkel lapozhatsz.",
+        "timesheets": "Egy év minden hónapja a kimutatás állapotával — ezt kérdezd le rendszeresen, ha azt figyeled, jóváhagyták-e már a hónapot.",
+        "timesheet": "Egy hónap: állapot, revízió, beküldés/jóváhagyás/elutasítás ideje, a jóváhagyó indoklása, összesítés és a számla állapota. A még kimutatás nélküli hónap állapota not_submitted.",
+        "submit": "Jóváhagyásra küldi a hónapot, pontosan úgy, mint a Kimutatások oldal Beküldés gombja. Csak vállalkozóknak.",
+        "invoice": "Feltölti a számla PDF-et (legfeljebb 10 MB) egy jóváhagyott hónaphoz, ugyanazokkal az ellenőrzésekkel, mint a feltöltő űrlap."
+      },
+      "errors": {
+        "title": "Hibák és korlátok",
+        "description": "Minden hiba ugyanolyan JSON-alakú; a kódra építs, az üzenet embereknek szól.",
+        "status400": "Hibás bemenet — a details.fields megnevezi, mi a gond.",
+        "status401": "Hiányzó, érvénytelen, lejárt vagy visszavont token.",
+        "status403": "A tokenből hiányzik egy jogosultság, a jogosultsághoz admin kell, vagy a fiók nem vállalkozói.",
+        "status404": "A megnevezett elem nem létezik.",
+        "status409": "A hónap állapota nem engedi — például már be van küldve, vagy még nincs jóváhagyva.",
+        "status413": "A fájl nagyobb 10 MB-nál.",
+        "status415": "Nem multipart/form-data, vagy a fájl nem PDF.",
+        "status422": "A hónap még nem küldhető be — például hiányzó leírások vagy díjak miatt.",
+        "status429": "Túl sok kérés — várj annyi másodpercet, amennyit a Retry-After megad."
+      },
+      "limits": {
+        "rate": "Tokenenként legfeljebb 120 kérés percenként.",
+        "range": "Órák: kérésenként legfeljebb 92 nap és oldalanként 200 bejegyzés.",
+        "upload": "Számlák: kérésenként egy, legfeljebb 10 MB-os PDF."
       }
     }
   },
@@ -2744,7 +2791,13 @@
     "apiTokens": {
       "title": "API-tokenek",
       "description": "A személyes hozzáférési tokenekkel a saját szkriptjeid és eszközeid a nevedben hívhatják a Sheet Happens REST API-t.",
-      "intro": "A token a te jogaiddal, és csak a neki adott jogosultságokkal jár el. Kezeld úgy, mint egy jelszót.",
+      "intro": "Ezekkel olvashatod a munkaóráidat, megnézheted, jóváhagyták-e a hónapot, beküldheted, és feltöltheted a számlát. A token a te jogaiddal, és csak a neki adott jogosultságokkal jár el. Kezeld úgy, mint egy jelszót.",
+      "baseUrlLabel": "API alap-URL",
+      "copyUrl": "URL másolása",
+      "urlCopied": "Az alap-URL a vágólapra került.",
+      "copyFailed": "A másolás nem sikerült. Jelöld ki a szöveget, és másold kézzel.",
+      "guideLink": "API-útmutató megnyitása",
+      "openApiLink": "OpenAPI-leírás (JSON)",
       "create": "Token létrehozása",
       "listLabel": "API-tokenjeid",
       "scopesLabel": "Jogosultságok",
@@ -2768,6 +2821,10 @@
         "hours_read": {
           "title": "Saját órák olvasása",
           "description": "A saját időbejegyzéseid és összesítéseid listázása egy időszakra."
+        },
+        "timesheets_read": {
+          "title": "Kimutatásaim olvasása",
+          "description": "A havi kimutatások állapota, összesítése, az elutasítás oka és a számla állapota."
         },
         "timesheets_write": {
           "title": "Kimutatás beküldése",
@@ -2803,7 +2860,10 @@
         "copy": "Token másolása",
         "copied": "A token a vágólapra került.",
         "copyFailed": "A másolás nem sikerült. Jelöld ki a tokent, és másold kézzel.",
-        "done": "Kész"
+        "done": "Kész",
+        "exampleLabel": "Próbáld ki",
+        "copyExample": "Parancs másolása",
+        "exampleCopied": "A parancs a vágólapra került."
       },
       "revokeDialog": {
         "title": "Visszavonod ezt a tokent?",

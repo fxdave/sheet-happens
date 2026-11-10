@@ -370,7 +370,8 @@
       "label": "Help content",
       "welcome": "Welcome",
       "manual": "Manual",
-      "connector": "Claude connector"
+      "connector": "Claude connector",
+      "api": "REST API"
     },
     "actions": {
       "editWelcome": "Edit welcome content"
@@ -422,6 +423,52 @@
         "body": "An agent using your connection reaches exactly what you reach in Sheet Happens: your own time entries, your own projects and your own totals. It can never see or change anyone else's hours, and a month with a submitted timesheet stays locked for an agent too.",
         "disconnect": "You decide how long it lasts. Until you disconnect it in Settings, the app can keep acting as you — including while you are not using it.",
         "openConnectedApps": "Open connected apps"
+      }
+    },
+    "api": {
+      "badge": "REST API",
+      "title": "Use Sheet Happens from your own scripts",
+      "description": "A JSON API for scripts and integrations: read your hours, check a month's timesheet status, submit it for approval and upload its invoice. It applies the same rules as the app — locked months stay locked.",
+      "baseUrlLabel": "Base URL",
+      "copy": "Copy",
+      "copied": "Copied to the clipboard.",
+      "copyFailed": "Copying failed. Select the text and copy it by hand.",
+      "createToken": "Create a token",
+      "openApi": "OpenAPI spec (JSON)",
+      "curlLabel": "Example: {method} {path}",
+      "token": {
+        "title": "Get a token",
+        "description": "Every request sends a personal access token in the Authorization header.",
+        "step1": "Open Settings → API tokens and click Create token.",
+        "step2": "Name it, pick only the scopes the script needs, and choose when it expires.",
+        "step3": "Copy the token right away — it is shown only once — and send it as: Authorization: Bearer YOUR_TOKEN. In the examples below, set it first with export TOKEN=…"
+      },
+      "endpoints": {
+        "title": "Endpoints",
+        "description": "Dates are YYYY-MM-DD, months YYYY-MM, durations whole minutes. The scope each endpoint needs is shown beside it.",
+        "hours": "Your time entries in a date range (at most 92 days), with page and range totals. Page with the nextCursor value it returns.",
+        "timesheets": "Every month of a year with its timesheet status — poll this to see whether a month is approved yet.",
+        "timesheet": "One month: status, revision, submitted/approved/rejected times, the reviewer's reason, totals and invoice status. A month with no timesheet yet reads not_submitted.",
+        "submit": "Submits the month for approval, exactly like the Submit button on Timesheets. Contractors only.",
+        "invoice": "Uploads the invoice PDF (max 10 MB) for an approved month, with the same checks as the upload form."
+      },
+      "errors": {
+        "title": "Errors and limits",
+        "description": "Every error has the same JSON shape; branch on the code, the message is for people.",
+        "status400": "Invalid input — details.fields names what is wrong.",
+        "status401": "Missing, invalid, expired or revoked token.",
+        "status403": "The token lacks a scope, the scope needs an admin, or the account is not a contractor.",
+        "status404": "Something you named does not exist.",
+        "status409": "The month's state does not allow it — for example it is already submitted or not yet approved.",
+        "status413": "The file is larger than 10 MB.",
+        "status415": "Not multipart/form-data, or the file is not a PDF.",
+        "status422": "The month cannot be submitted yet — for example missing descriptions or rates.",
+        "status429": "Too many requests — wait the number of seconds in Retry-After."
+      },
+      "limits": {
+        "rate": "Up to 120 requests a minute per token.",
+        "range": "Hours: at most 92 days per request and 200 entries per page.",
+        "upload": "Invoices: one PDF of at most 10 MB per request."
       }
     }
   },
@@ -2744,7 +2791,13 @@
     "apiTokens": {
       "title": "API tokens",
       "description": "Personal access tokens let your own scripts and tools call the Sheet Happens REST API as you.",
-      "intro": "A token acts with your rights and only the scopes you give it. Treat it like a password.",
+      "intro": "Use them to read your hours, check whether a month is approved, submit it and upload its invoice. A token acts with your rights and only the scopes you give it. Treat it like a password.",
+      "baseUrlLabel": "API base URL",
+      "copyUrl": "Copy URL",
+      "urlCopied": "Base URL copied to the clipboard.",
+      "copyFailed": "Copying failed. Select the text and copy it by hand.",
+      "guideLink": "Read the API guide",
+      "openApiLink": "OpenAPI spec (JSON)",
       "create": "Create token",
       "listLabel": "Your API tokens",
       "scopesLabel": "Scopes",
@@ -2768,6 +2821,10 @@
         "hours_read": {
           "title": "Read my hours",
           "description": "List your own time entries and totals for a date range."
+        },
+        "timesheets_read": {
+          "title": "Read my timesheets",
+          "description": "See each month's timesheet status, totals, rejection reason and invoice status."
         },
         "timesheets_write": {
           "title": "Submit my timesheet",
@@ -2803,7 +2860,10 @@
         "copy": "Copy token",
         "copied": "Token copied to the clipboard.",
         "copyFailed": "Copying failed. Select the token and copy it by hand.",
-        "done": "Done"
+        "done": "Done",
+        "exampleLabel": "Try it",
+        "copyExample": "Copy command",
+        "exampleCopied": "Command copied to the clipboard."
       },
       "revokeDialog": {
         "title": "Revoke this token?",

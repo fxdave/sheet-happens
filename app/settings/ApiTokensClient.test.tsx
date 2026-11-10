@@ -37,7 +37,12 @@ function renderClient(
 ) {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === "en" ? en : hu}>
-      <ApiTokensClient tokens={[token]} canGrantAdminScopes={false} {...props} />
+      <ApiTokensClient
+        tokens={[token]}
+        baseUrl="https://app.example.com/api/v1"
+        canGrantAdminScopes={false}
+        {...props}
+      />
     </NextIntlClientProvider>,
   );
 }
@@ -62,6 +67,28 @@ describe("ApiTokensClient", () => {
     expect(within(list).getByText("Read my hours")).toBeInTheDocument();
     expect(within(list).getByText("Submit my timesheet")).toBeInTheDocument();
     expect(within(list).getByText("Never")).toBeInTheDocument();
+  });
+
+  it("shows the base URL and links to the guide and the spec", () => {
+    renderClient();
+
+    expect(screen.getByText("https://app.example.com/api/v1")).toBeInTheDocument();
+    expect(screen.getByRole("link", { name: "Read the API guide" })).toHaveAttribute(
+      "href",
+      "/help?tab=api",
+    );
+    expect(screen.getByRole("link", { name: "OpenAPI spec (JSON)" })).toHaveAttribute(
+      "href",
+      "https://app.example.com/api/v1/openapi.json",
+    );
+  });
+
+  it("offers the timesheet read scope", async () => {
+    const user = userEvent.setup();
+    renderClient();
+
+    await user.click(screen.getByRole("button", { name: "Create token" }));
+    expect(screen.getByRole("checkbox", { name: /Read my timesheets/ })).toBeInTheDocument();
   });
 
   it("shows the empty state", () => {
@@ -100,6 +127,9 @@ describe("ApiTokensClient", () => {
       expiry: "365",
     });
     expect(await screen.findByText("sh_pat_plaintextsecret")).toBeInTheDocument();
+    expect(screen.getByLabelText("Try it")).toHaveTextContent(
+      /curl -H "Authorization: Bearer sh_pat_plaintextsecret".*https:\/\/app\.example\.com\/api\/v1\/hours\?from=\d{4}-\d{2}-\d{2}&to=\d{4}-\d{2}-\d{2}/s,
+    );
     expect(screen.getByText(/You won't see this token again/)).toBeInTheDocument();
     expect(refresh).toHaveBeenCalled();
 
