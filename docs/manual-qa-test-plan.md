@@ -4282,6 +4282,47 @@ month level until their own redesigns land.
   duration into a cell still saves, and a day header opens Days on that day.
 - Months shows the month heat map and the project rows; the declared-hours form saves and uploads
   proof as before. A heat-map day opens Days, a week row opens Weeks.
+## Time Tracking Weeks View (Month Calendar)
+
+The Weeks level of `/time` shows one calendar month: rows are ISO weeks starting on Monday, each day
+lists its entries, and a week-total column closes every row. Below 768px it becomes a list of weeks,
+newest first, that loads earlier months as it scrolls.
+
+- November 2026 shows six rows, Oct 26 – Dec 6; a month that fits five Mondays shows five. The
+  header reads MON…SUN plus WEEK (H, K, SZE, CS, P, SZO, V and HÉT in Hungarian), and the two weekend
+  columns are visibly narrower than the weekdays.
+- The 1st of the month reads "Nov 1" (HU "nov. 1."), every other day only its number. Each day with
+  hours shows its total top-right; each week shows its number (W46, HU "46. hét") over its total,
+  or "–" when nothing was logged in it. The week total includes the neighbouring month's days in that
+  row; the period total above the calendar counts only the month's own days and matches the Months
+  view's tracked total for the same month.
+- A day lists at most three entries, earliest start first and duration-only entries after them,
+  then "+N more". Each chip has the project's colour bar on a light tint of it in both themes; a long
+  description wraps to two lines at most, the hours sit top-right inside the text, and the second
+  line runs under the hours.
+- Days of the previous and next month are striped and their chips faded but still readable. Today is
+  outlined, its number in an accent pill. Future days are empty and muted.
+- A past weekday in the month with nothing logged and no leave shows "⚠ nothing logged"; weekends,
+  today, future days and the neighbouring months' days never do. A full-day leave shows "On leave"
+  (HU "Szabadság"); a day in a month locked by a submitted timesheet shows a small lock.
+- Declared hours never appear in a day cell or in any total here: a declared project's figure is
+  shown in the Months view only.
+- Clicking a day, or its "+N more", opens that day. Tab reaches every day in order, and a screen
+  reader names each one uniquely, e.g. "Tuesday, November 10, 8 hours", "Monday, November 2, nothing
+  logged", with ", locked" on a locked day.
+- Nothing overflows its cell or the window at 1440, at 1280 with the sidebar open (calendar about
+  1000px wide), at 1024 and at 768, in English and Hungarian, with very long descriptions, very long
+  project names and an unbroken 80-character word: text wraps or ends in an ellipsis, hours never
+  wrap, and the page never scrolls sideways. In narrow cells the hours move above the description;
+  in the narrowest weekend cells they are left to the day total.
+- On a phone (390px) the month is a list of weeks, newest first, each headed "W46 · Nov 9 – 15" with
+  its total on the right, its days newest first. Future days are left out, and so are weekend days
+  with nothing on them. Each day row shows its date, a Today pill on today, its total, up to three
+  chips with the project name under the description, and "+N more" when there are more.
+- Scrolling to the end of the phone list shows a skeleton and then the previous month's weeks; the
+  week that straddles the two months appears once, with all its days. Keep scrolling and earlier
+  months keep arriving.
+- All of the above reads correctly in Hungarian and English, in both the light and the dark theme.
 
 ## Regression Checklist For Every Release
 
