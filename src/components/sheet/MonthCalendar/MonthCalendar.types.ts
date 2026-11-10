@@ -38,6 +38,8 @@ export type MonthCalendarData = {
   timezone: string;
   totalMinutes: number;
   weeks: MonthCalendarWeek[];
+  /** Whether anything was logged before the grid's first Monday. */
+  hasEarlier?: boolean;
 };
 
 /** `grid` is the 7-column month (≥ 768px); `list` is the phone's newest-first list of weeks. */
@@ -49,7 +51,7 @@ export type MonthCalendarProps = {
   earlierCalendars?: readonly MonthCalendarData[];
   durationDisplayFormat: DurationDisplayFormat;
   locale: string;
-  /** Omit to follow the viewport: `grid` from 768px up, `list` below. */
+  /** Omit to follow the viewport in CSS: `grid` from 768px (`md`) up, `list` below. */
   layout?: MonthCalendarLayout;
   onSelectDay: (isoDate: string) => void;
   /** List layout: the bottom sentinel came into view; load earlier weeks. */

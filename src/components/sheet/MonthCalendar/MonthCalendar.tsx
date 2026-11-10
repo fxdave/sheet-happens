@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { useEffect, useMemo, useRef, type CSSProperties } from "react";
 
 import { formatDateLabel, formatHoursWithUnit, formatWeekdayLabel } from "@/src/lib/formatting";
-import { useMediaQuery } from "@/src/lib/use-media-query";
 import { cn } from "@/src/lib/utils";
 import { Skeleton } from "../../ui/Skeleton";
 import { buildListWeeks, isNothingLogged, MAX_VISIBLE_ENTRIES } from "./MonthCalendar.model";
@@ -34,10 +33,20 @@ const GRID_COLUMNS = {
  * asks for earlier ones through `onReachEnd` as its bottom comes into view.
  */
 export function MonthCalendar({ layout, ...props }: MonthCalendarProps) {
-  const wide = useMediaQuery("(min-width: 768px)", { serverSnapshot: true });
-  const resolved = layout ?? (wide ? "grid" : "list");
+  if (layout === "grid") return <MonthGrid {...props} />;
+  if (layout === "list") return <WeekList {...props} />;
 
-  return resolved === "grid" ? <MonthGrid {...props} /> : <WeekList {...props} />;
+  // Both, switched in CSS, so the server render is already right on a phone: no grid flash.
+  return (
+    <>
+      <div className="hidden min-w-0 md:block">
+        <MonthGrid {...props} />
+      </div>
+      <div className="min-w-0 md:hidden">
+        <WeekList {...props} />
+      </div>
+    </>
+  );
 }
 
 type InnerProps = Omit<MonthCalendarProps, "layout">;
