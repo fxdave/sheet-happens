@@ -4290,7 +4290,8 @@ newest first, that loads earlier months as it scrolls.
 
 - November 2026 shows six rows, Oct 26 – Dec 6; a month that fits five Mondays shows five. The
   header reads MON…SUN plus WEEK (H, K, SZE, CS, P, SZO, V and HÉT in Hungarian), and the two weekend
-  columns are visibly narrower than the weekdays.
+  columns are visibly narrower than the weekdays while they are empty; once a weekend day holds
+  entries they widen.
 - The 1st of the month reads "Nov 1" (HU "nov. 1."), every other day only its number. Each day with
   hours shows its total top-right; each week shows its number (W46, HU "46. hét") over its total,
   or "–" when nothing was logged in it. The week total includes the neighbouring month's days in that
@@ -4313,7 +4314,8 @@ newest first, that loads earlier months as it scrolls.
 - Nothing overflows its cell or the window at 1440, at 1280 with the sidebar open (calendar about
   1000px wide), at 1024 and at 768, in English and Hungarian, with very long descriptions, very long
   project names and an unbroken 80-character word: text wraps or ends in an ellipsis, hours never
-  wrap, and the page never scrolls sideways. In narrow cells the hours move above the description;
+  wrap, and the page never scrolls sideways. A normal word is never split across lines unless it
+  is wider than the whole line on its own. In narrow cells the hours move above the description;
   in the narrowest weekend cells they are left to the day total.
 - On a phone (390px) the month is a list of weeks, newest first, each headed "W46 · Nov 9 – 15" with
   its total on the right, its days newest first. Future days are left out, and so are weekend days
