@@ -54,3 +54,13 @@ regexes = [
   '''^(auth-secret|access-key|secret-key|secret)$''',
   '''postgresql://user:password@example\.test/db''',
 ]
+
+[[allowlists]]
+description = "REST API test fixtures: fake personal access tokens in unit tests and the shared test actor"
+condition = "AND"
+paths = ['''(\.test\.tsx?|src/server/rest-api/test-actor\.ts)$''']
+regexes = [
+  '''^sh_pat_AbCd1234$''',
+  '''^sh_pat_01234567$''',
+  '''^sh_pat_plaintextsecret$''',
+]
