@@ -111,6 +111,19 @@ export const Month: Story = {
   },
 };
 
+/** The current month: forward would pass today, so › is disabled. */
+export const MonthAtLatest: Story = {
+  args: {
+    label: "November 2026",
+    labels: { ...labels, previous: "Previous month", next: "Next month" },
+    atToday: true,
+    nextDisabled: true,
+  },
+  play: async ({ canvas }) => {
+    await expect(canvas.getByRole("button", { name: "Next month" })).toBeDisabled();
+  },
+};
+
 /** The label opens a month grid: a date picker changes the date, never the view. */
 export const MonthPickerOpen: Story = {
   play: async ({ canvas, userEvent }) => {

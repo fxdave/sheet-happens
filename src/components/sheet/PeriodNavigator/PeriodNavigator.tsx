@@ -39,6 +39,7 @@ export function PeriodNavigator({
   menu,
   labelRef,
   disabled = false,
+  nextDisabled = false,
   className,
   onPrevious,
   onNext,
@@ -103,7 +104,7 @@ export function PeriodNavigator({
           <StepButton
             label={labels.next}
             shortcut={shortcuts?.next}
-            disabled={disabled}
+            disabled={disabled || nextDisabled}
             onClick={onNext}
           >
             <ChevronRight className="size-4" aria-hidden="true" />

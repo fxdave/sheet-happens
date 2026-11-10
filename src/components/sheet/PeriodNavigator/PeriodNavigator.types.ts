@@ -39,6 +39,8 @@ export type PeriodNavigatorProps = {
   /** The label button, so the screen can land focus on it after a view change. */
   labelRef?: RefObject<HTMLButtonElement | null>;
   disabled?: boolean;
+  /** Forward would pass today. */
+  nextDisabled?: boolean;
   className?: string;
   onPrevious: () => void;
   onNext: () => void;
