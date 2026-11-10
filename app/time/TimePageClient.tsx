@@ -62,6 +62,7 @@ import {
   type TimeView,
 } from "./view";
 import { predictPeriod, resolvePeriod } from "./periods";
+import { useIdlePrefetch } from "./use-idle-prefetch";
 import { WeeksView } from "./WeeksView";
 
 const UNDO_TOAST_MS = 6_000;
@@ -199,6 +200,15 @@ function TimePageContent({ data }: { data: TimePageData }) {
     const params = new URLSearchParams(window.location.search);
     navigate(next, params.get("day") ?? params.get("week"));
   }
+
+  useIdlePrefetch(view, period.key, () => {
+    const params = new URLSearchParams(window.location.search);
+    const anchor = params.get("day") ?? params.get("week");
+    return [
+      ...stops.filter((stop) => stop !== view).map((stop) => buildTimeHref(stop, anchor)),
+      buildTimeHref(view, period.previousDay),
+    ];
+  });
 
   /* ------------------------------------------------------------------------------------------ */
   /* Mutations                                                                                  */

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-const timeEntryFindMany = vi.fn(async () => []);
+const timeEntryFindMany = vi.fn<(args: unknown) => Promise<unknown[]>>(async () => []);
 
 vi.mock("@/src/server/db/client", () => ({
   prisma: {
