@@ -72,6 +72,7 @@ export type {
   BuildMonthOverviewInput,
   MemberMonthOverview,
   MonthOverviewAssignment,
+  MonthOverviewDayTotal,
   MonthOverviewDeclaration,
   MonthOverviewDeclarationProof,
   MonthOverviewDeclarationRow,
@@ -86,6 +87,17 @@ export type {
   MonthCalendarEntryRow,
   MonthCalendarWeek,
 } from "./month-calendar";
+export { buildYearOverview, getMemberYearOverview, yearMonthStarts } from "./year-overview";
+export type {
+  BuildYearOverviewInput,
+  MemberYearOverview,
+  YearOverviewClient,
+  YearOverviewDeclared,
+  YearOverviewLeaveDay,
+  YearOverviewMonth,
+  YearOverviewProfile,
+  YearOverviewTimesheetStatus,
+} from "./year-overview";
 export {
   buildHoursProofObjectKey,
   DeclarationError,
