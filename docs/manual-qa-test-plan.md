@@ -4263,6 +4263,33 @@ file=@{INVOICE_PDF_FILE}` answers `201`, and the admin review shows the invoice 
 - Calling a browser route such as `/api/notifications` with only a bearer token answers `401`.
 - More than 120 calls a minute with one token answer `429` with a `Retry-After` header.
 
+### Timesheet status over the API
+
+- Create a token with Read my timesheets as `{CONTRACTOR_EMAIL}`. `GET /api/v1/timesheets/{TIMESHEET_MONTH}`
+  returns the same status, revision, dates and totals `/timesheets` shows for that month; a submitted,
+  an approved and a paid month each report their own status, and the paid one its accepted invoice.
+- A month with no timesheet yet reads `not_submitted` with `totals.source: "live"` matching the
+  running total on `/timesheets`.
+- After an admin rejects a month with a reason, the status reads `rejected` with that reason; after
+  an invoice is rejected, `invoice.status` is `rejected` with the admin's reason.
+- `GET /api/v1/timesheets?year=…` lists all twelve months, newest first; `year=26` answers `400`.
+- A token with only Submit my timesheet gets `403` on both reads (scopes are never implied), and an
+  employee's token gets `403 CONTRACTOR_REQUIRED`.
+- The submit and invoice responses carry the same status object under `timesheet`.
+
+### Finding the API from the app
+
+- `/help` has a REST API tab. It shows this deployment's base URL with a Copy button, how to create
+  a token, the scopes in the same words as Settings, one curl example per endpoint with the real
+  base URL (each copyable), the error codes and the limits, in Hungarian and English. Check it at
+  1440, 768 and 390 px: the tabs wrap instead of overflowing and long curl lines scroll inside their
+  box.
+- Its OpenAPI link opens `/api/v1/openapi.json` without signing in; the document's `servers` URL is
+  the same base URL.
+- `/settings` → API tokens shows the base URL with a copy button, a Read the API guide link that
+  opens that Help tab, and the OpenAPI link. After creating a token, the dialog shows a Try it curl
+  command that already contains the new token and works when pasted into a terminal.
+
 ## Regression Checklist For Every Release
 
 - An employee can record vacation and sick leave from yesterday on, a half day only on a single
@@ -4445,3 +4472,6 @@ file=@{INVOICE_PDF_FILE}` answers `201`, and the admin review shows the invoice 
 - `/api/v1` reads only the caller's own hours unless an admin token asks for others, submits and
   invoices only the caller's own contractor months, and refuses locked months and invalid invoices
   with the same rules as the web app.
+- A script can poll `GET /api/v1/timesheets/{month}` to learn whether a month is approved, and the
+  Help page's REST API tab and `/api/v1/openapi.json` describe every endpoint with this deployment's
+  base URL.
