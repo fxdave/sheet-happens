@@ -69,6 +69,8 @@ export type MemberMonthCalendar = {
   /** Tracked minutes inside the month — the month overview's `trackedMinutes`. */
   totalMinutes: number;
   weeks: MonthCalendarWeek[];
+  /** Whether anything was logged before the grid's first Monday: the phone list's stop. */
+  hasEarlier: boolean;
 };
 
 /** An entry as the query returns it, already flattened. */
@@ -86,6 +88,7 @@ export type BuildMonthCalendarInput = {
   lockedMonthStarts: ReadonlySet<string>;
   leaveDates: ReadonlySet<string>;
   entries: readonly MonthCalendarEntryRow[];
+  hasEarlier?: boolean;
 };
 
 /** The calendar, assembled from rows the caller has already fetched. */
@@ -142,12 +145,13 @@ export function buildMonthCalendar(input: BuildMonthCalendarInput): MemberMonthC
     timezone: input.timezone,
     totalMinutes,
     weeks,
+    hasEarlier: input.hasEarlier ?? false,
   };
 }
 
 /**
- * One member's month as a calendar. Four indexed queries whatever the month's size: the member,
- * the grid's entries, its period locks and its full-day leaves.
+ * One member's month as a calendar. Five indexed queries whatever the month's size: the member,
+ * the grid's entries, its period locks, its full-day leaves and whether anything is older.
  */
 export async function getMemberMonthCalendar(input: {
   memberId: string;
@@ -167,7 +171,7 @@ export async function getMemberMonthCalendar(input: {
   const gridStart = getMonday(monthStart);
   const gridEnd = addDays(getMonday(getMonthEnd(monthStart)), 6);
 
-  const [entries, lockedMonthStarts, leaveDates] = await Promise.all([
+  const [entries, lockedMonthStarts, leaveDates, earlier] = await Promise.all([
     prisma.timeEntry.findMany({
       where: {
         memberId: member.id,
@@ -191,6 +195,15 @@ export async function getMemberMonthCalendar(input: {
       monthStarts: getMonthStartsInRange(gridStart, gridEnd),
     }),
     findFullDayLeaveDates(prisma, member.id, formatDateOnly(gridStart), formatDateOnly(gridEnd)),
+    prisma.timeEntry.findFirst({
+      where: {
+        memberId: member.id,
+        deletedAt: null,
+        source: { not: "DECLARED" },
+        localDate: { lt: gridStart },
+      },
+      select: { id: true },
+    }),
   ]);
 
   return buildMonthCalendar({
@@ -199,6 +212,7 @@ export async function getMemberMonthCalendar(input: {
     timezone: member.timezone,
     lockedMonthStarts,
     leaveDates,
+    hasEarlier: Boolean(earlier),
     entries: entries.map((entry) => ({
       id: entry.id,
       localDate: formatDateOnly(entry.localDate),

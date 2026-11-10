@@ -4,13 +4,17 @@ import type { MonthCalendarEntryRow } from "./month-calendar";
 
 const memberFindUnique = vi.fn();
 const timeEntryFindMany = vi.fn();
+const timeEntryFindFirst = vi.fn();
 const periodLockFindMany = vi.fn();
 const leaveFindMany = vi.fn();
 
 vi.mock("@/src/server/db/client", () => ({
   prisma: {
     member: { findUnique: (args: unknown) => memberFindUnique(args) },
-    timeEntry: { findMany: (args: unknown) => timeEntryFindMany(args) },
+    timeEntry: {
+      findMany: (args: unknown) => timeEntryFindMany(args),
+      findFirst: (args: unknown) => timeEntryFindFirst(args),
+    },
     periodLock: { findMany: (args: unknown) => periodLockFindMany(args) },
     leave: { findMany: (args: unknown) => leaveFindMany(args) },
   },
@@ -158,6 +162,8 @@ describe("getMemberMonthCalendar", () => {
     });
     timeEntryFindMany.mockReset();
     timeEntryFindMany.mockResolvedValue([]);
+    timeEntryFindFirst.mockReset();
+    timeEntryFindFirst.mockResolvedValue(null);
     periodLockFindMany.mockReset();
     periodLockFindMany.mockResolvedValue([]);
     leaveFindMany.mockReset();
@@ -229,6 +235,24 @@ describe("getMemberMonthCalendar", () => {
         startTime: "11:00",
       },
     ]);
+  });
+
+  it("reports whether anything was logged before the grid", async () => {
+    timeEntryFindFirst.mockResolvedValue({ id: "older" });
+
+    const calendar = await getMemberMonthCalendar({
+      memberId: "member-1",
+      monthStart: new Date("2026-11-01T00:00:00.000Z"),
+    });
+
+    expect(calendar.hasEarlier).toBe(true);
+    expect(timeEntryFindFirst.mock.calls[0]?.[0]).toMatchObject({
+      where: {
+        deletedAt: null,
+        source: { not: "DECLARED" },
+        localDate: { lt: new Date("2026-10-26T00:00:00.000Z") },
+      },
+    });
   });
 
   it("rejects an unknown member", async () => {
