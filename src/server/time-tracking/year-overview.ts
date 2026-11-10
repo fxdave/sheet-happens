@@ -58,6 +58,8 @@ export type MemberYearOverview = {
   leaveDays: YearOverviewLeaveDay[];
   /** Always twelve, January first. */
   months: YearOverviewMonth[];
+  /** Whether any entry predates this year, which is what keeps the year stack loading. */
+  hasEarlier: boolean;
 };
 
 export type BuildYearOverviewInput = {
@@ -74,6 +76,7 @@ export type BuildYearOverviewInput = {
   }[];
   timesheets: readonly { periodStart: string; status: YearOverviewTimesheetStatus }[];
   lockedMonthStarts: ReadonlySet<string>;
+  hasEarlier?: boolean;
   leaves: readonly {
     startDate: string;
     endDate: string;
@@ -140,6 +143,7 @@ export function buildYearOverview(input: BuildYearOverviewInput): MemberYearOver
       .map(([isoDate, dayPart]) => ({ isoDate, dayPart }))
       .sort((a, b) => a.isoDate.localeCompare(b.isoDate)),
     months,
+    hasEarlier: input.hasEarlier ?? false,
   };
 }
 
@@ -152,6 +156,7 @@ export type YearOverviewClient = {
     } | null>;
   };
   timeEntry: {
+    findFirst: (args: unknown) => Promise<{ id: string } | null>;
     groupBy: (args: unknown) => Promise<
       Array<{
         localDate: Date;
@@ -202,48 +207,58 @@ export async function getMemberYearOverview(
   const yearEnd = parseDateOnly(`${input.year}-12-31`);
   const monthStarts = yearMonthStarts(input.year);
 
-  const [daySums, declarations, timesheets, lockedMonthStarts, leaves] = await Promise.all([
-    db.timeEntry.groupBy({
-      by: ["localDate"],
-      where: {
+  const [daySums, declarations, timesheets, lockedMonthStarts, leaves, earlier] = await Promise.all(
+    [
+      db.timeEntry.groupBy({
+        by: ["localDate"],
+        where: {
+          memberId: input.memberId,
+          deletedAt: null,
+          // Same exclusion as the month overview: declarations are reported by their own rows.
+          source: { not: "DECLARED" },
+          localDate: { gte: yearStart, lte: yearEnd },
+        },
+        _sum: { durationMinutes: true },
+        _count: { _all: true },
+      }),
+      db.monthlyHourDeclaration.findMany({
+        where: { memberId: input.memberId, periodStart: { gte: yearStart, lte: yearEnd } },
+        select: {
+          periodStart: true,
+          projectId: true,
+          minutes: true,
+          project: { select: { name: true } },
+        },
+      }),
+      // Timesheets only ever exist for contractors, so an employee's months come back `null`.
+      db.timesheet.findMany({
+        where: {
+          contractorMemberId: input.memberId,
+          periodStart: { gte: yearStart, lte: yearEnd },
+        },
+        select: { periodStart: true, status: true },
+      }),
+      loadLockedMonthStarts({
         memberId: input.memberId,
-        deletedAt: null,
-        // Same exclusion as the month overview: declarations are reported by their own rows.
-        source: { not: "DECLARED" },
-        localDate: { gte: yearStart, lte: yearEnd },
-      },
-      _sum: { durationMinutes: true },
-      _count: { _all: true },
-    }),
-    db.monthlyHourDeclaration.findMany({
-      where: { memberId: input.memberId, periodStart: { gte: yearStart, lte: yearEnd } },
-      select: {
-        periodStart: true,
-        projectId: true,
-        minutes: true,
-        project: { select: { name: true } },
-      },
-    }),
-    // Timesheets only ever exist for contractors, so an employee's months come back `null`.
-    db.timesheet.findMany({
-      where: { contractorMemberId: input.memberId, periodStart: { gte: yearStart, lte: yearEnd } },
-      select: { periodStart: true, status: true },
-    }),
-    loadLockedMonthStarts({
-      memberId: input.memberId,
-      monthStarts: monthStarts.map((monthStart) => parseDateOnly(monthStart)),
-      db,
-    }),
-    db.leave.findMany({
-      where: {
-        memberId: input.memberId,
-        deletedAt: null,
-        startDate: { lte: yearEnd },
-        endDate: { gte: yearStart },
-      },
-      select: { startDate: true, endDate: true, dayPart: true },
-    }),
-  ]);
+        monthStarts: monthStarts.map((monthStart) => parseDateOnly(monthStart)),
+        db,
+      }),
+      db.leave.findMany({
+        where: {
+          memberId: input.memberId,
+          deletedAt: null,
+          startDate: { lte: yearEnd },
+          endDate: { gte: yearStart },
+        },
+        select: { startDate: true, endDate: true, dayPart: true },
+      }),
+      // Declared months materialize entries too, so this covers both kinds of history.
+      db.timeEntry.findFirst({
+        where: { memberId: input.memberId, deletedAt: null, localDate: { lt: yearStart } },
+        select: { id: true },
+      }),
+    ],
+  );
 
   return buildYearOverview({
     year: input.year,
@@ -266,6 +281,7 @@ export async function getMemberYearOverview(
       status: row.status.toLowerCase() as YearOverviewTimesheetStatus,
     })),
     lockedMonthStarts,
+    hasEarlier: earlier !== null,
     leaves: leaves.map((leave) => ({
       startDate: formatDateOnly(leave.startDate),
       endDate: formatDateOnly(leave.endDate),

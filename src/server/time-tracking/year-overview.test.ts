@@ -127,6 +127,7 @@ function createYearDb(
       ),
     },
     timeEntry: {
+      findFirst: vi.fn(async () => ({ id: "older-entry" })),
       groupBy: vi.fn(async () => [
         { localDate: dateOnly("2026-11-09"), _sum: { durationMinutes: 450 }, _count: { _all: 2 } },
       ]),
@@ -182,6 +183,7 @@ describe("getMemberYearOverview", () => {
     expect(overview.months[10]?.trackedMinutes).toBe(450);
     expect(overview.leaveDays.map((day) => day.isoDate)).toEqual(["2026-08-03", "2026-08-04"]);
     expect(overview.totalMinutes).toBe(1890);
+    expect(overview.hasEarlier).toBe(true);
 
     expect(db.timeEntry.groupBy).toHaveBeenCalledTimes(1);
     expect(db.timeEntry.groupBy).toHaveBeenCalledWith(
