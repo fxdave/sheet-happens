@@ -17,6 +17,7 @@ import { type DurationDisplayFormat } from "@/src/lib/formatting";
 import { useOverlayParam } from "@/src/lib/use-overlay-param";
 import { cn } from "@/src/lib/utils";
 import type {
+  MemberMonthCalendar,
   MemberMonthOverview,
   MemberTimeDays,
   TimeGridEntry,
@@ -56,7 +57,13 @@ const UNDO_TOAST_MS = 6_000;
 /** What the server loaded for the view in the URL. */
 export type TimePageData =
   | { view: "days"; days: MemberTimeDays }
-  | { view: "weeks"; week: TimeGridWeek }
+  /** `week` is the frame's half (assignments, timer, drafts); `month` only for a hybrid member. */
+  | {
+      view: "weeks";
+      week: TimeGridWeek;
+      calendar: MemberMonthCalendar;
+      month: MemberMonthOverview | null;
+    }
   | { view: "months"; week: TimeGridWeek; month: MemberMonthOverview };
 
 /** The entries and date bounds the entry dialog checks a day total and a date against. */
@@ -381,6 +388,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
       }}
       shortcuts={{ previous: "←", next: "→", today: "T" }}
       disabled={isNavigating}
+      nextDisabled={period.nextDay === null}
       onPrevious={() => step("previous")}
       onNext={() => step("next")}
       onToday={goToToday}
@@ -404,7 +412,14 @@ function TimePageContent({ data }: { data: TimePageData }) {
     data.view === "days" && view === "days" ? (
       <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
     ) : data.view === "weeks" && view === "weeks" ? (
-      <WeeksView week={data.week} actions={actions} onNavigate={navigate} />
+      <WeeksView
+        key={data.calendar.monthStart}
+        week={data.week}
+        calendar={data.calendar}
+        month={data.month}
+        actions={actions}
+        onNavigate={navigate}
+      />
     ) : data.view === "months" ? (
       <MonthsView week={data.week} month={data.month} actions={actions} onNavigate={navigate} />
     ) : null;

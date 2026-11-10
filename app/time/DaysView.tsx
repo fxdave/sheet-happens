@@ -31,7 +31,7 @@ import type { TimeViewActions } from "./TimePageClient";
 import { getEntryWarnings } from "./time-entry-helpers";
 import { useDescriptionSuggestions } from "./use-description-suggestions";
 import { useDurationFormatting } from "./use-duration-formatting";
-import { buildTimeHref, isWeekendIso } from "./view";
+import { buildTimeHref, isWeekendIso, resolveMonthStartIso } from "./view";
 
 type DaysViewProps = {
   days: MemberTimeDays;
@@ -219,9 +219,10 @@ export function DaysView({ days, actions }: DaysViewProps) {
     weekEnd: days.rangeEnd,
   };
   const target = formatMinutesWithUnit(DAILY_SOFT_WARNING_MINUTES);
-  const monthsLink = (chunks: React.ReactNode) => (
+  // The declared figures are edited under the month calendar, in Weeks.
+  const weeksLink = (chunks: React.ReactNode) => (
     <Link
-      href={buildTimeHref("months", days.anchorDay) as Route}
+      href={buildTimeHref("weeks", resolveMonthStartIso(days.anchorDay)) as Route}
       className="font-medium text-accent underline underline-offset-2"
     >
       {chunks}
@@ -258,9 +259,9 @@ export function DaysView({ days, actions }: DaysViewProps) {
           {declared.length === 1
             ? t.rich("days.declaredElsewhere", {
                 project: declared[0]?.name ?? "",
-                link: monthsLink,
+                link: weeksLink,
               })
-            : t.rich("days.declaredElsewhereMany", { count: declared.length, link: monthsLink })}
+            : t.rich("days.declaredElsewhereMany", { count: declared.length, link: weeksLink })}
         </p>
       ) : null}
     </div>

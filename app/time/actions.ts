@@ -23,7 +23,6 @@ import {
   getMemberMonthCalendar,
   getMemberTimeDays,
   HOURS_PROOF_MAX_BYTES,
-  markInactiveProjectWeek,
   parseDateOnly,
   restoreTimeEntry,
   saveMonthlyHourDeclaration,
@@ -35,7 +34,6 @@ import {
   type TimeTrackingDateErrorCode,
   TimeTrackingError,
   type TimeTrackingErrorCode,
-  unmarkInactiveProjectWeek,
   updateTimeEntry,
   uploadDeclarationProof,
   type CopyTimeEntriesResult,
@@ -50,7 +48,6 @@ import type {
   DeleteMonthlyHourDeclarationActionInput,
   DeleteTimeEntryActionInput,
   DuplicatePreviousWeekActionInput,
-  InactiveProjectWeekActionInput,
   LoadEarlierTimeDaysActionInput,
   LoadEarlierTimeDaysActionResult,
   RestoreTimeEntryActionInput,
@@ -117,12 +114,6 @@ const updateTimeEntrySchema = z
 
 const deleteTimeEntrySchema = z.object({
   timeEntryId: z.string().trim().min(1, "Time entry id is missing."),
-});
-
-const inactiveWeekSchema = z.object({
-  projectId: z.string().trim().min(1, "Choose a project."),
-  weekStartDate: z.string().trim().refine(isDateInputValue, "Choose a valid week."),
-  note: z.string().trim().max(500, "Note must be 500 characters or less.").optional(),
 });
 
 const startRunningTimerSchema = z.object({
@@ -591,74 +582,6 @@ export async function clearTimeEntryDraftAction(
     };
   } catch (error) {
     return mapTimeTrackingActionError(error, t("errors.draftClearFailed"), t);
-  }
-}
-
-export async function markInactiveProjectWeekAction(
-  input: InactiveProjectWeekActionInput,
-): Promise<TimeTrackingActionState> {
-  const t = await getTranslations("TimeTrackingActions");
-  const parsed = inactiveWeekSchema.safeParse(input);
-
-  if (!parsed.success) {
-    return {
-      status: "error",
-      message: t("errors.inactiveWeekSaveFailed"),
-    };
-  }
-
-  try {
-    const { member } = await requireActiveAppMemberForAction();
-    await markInactiveProjectWeek({
-      ...parsed.data,
-      weekStartDate: parseDateOnly(parsed.data.weekStartDate),
-      memberId: member.id,
-      actorMemberId: member.id,
-      requestMetadata: await getTimeTrackingRequestMetadata(),
-    });
-
-    revalidatePath("/time");
-
-    return {
-      status: "success",
-      message: t("success.inactiveWeekSaved"),
-    };
-  } catch (error) {
-    return mapTimeTrackingActionError(error, t("errors.inactiveWeekSaveFailed"), t);
-  }
-}
-
-export async function unmarkInactiveProjectWeekAction(
-  input: InactiveProjectWeekActionInput,
-): Promise<TimeTrackingActionState> {
-  const t = await getTranslations("TimeTrackingActions");
-  const parsed = inactiveWeekSchema.safeParse(input);
-
-  if (!parsed.success) {
-    return {
-      status: "error",
-      message: t("errors.inactiveWeekRemoveFailed"),
-    };
-  }
-
-  try {
-    const { member } = await requireActiveAppMemberForAction();
-    await unmarkInactiveProjectWeek({
-      ...parsed.data,
-      weekStartDate: parseDateOnly(parsed.data.weekStartDate),
-      memberId: member.id,
-      actorMemberId: member.id,
-      requestMetadata: await getTimeTrackingRequestMetadata(),
-    });
-
-    revalidatePath("/time");
-
-    return {
-      status: "success",
-      message: t("success.inactiveWeekRemoved"),
-    };
-  } catch (error) {
-    return mapTimeTrackingActionError(error, t("errors.inactiveWeekRemoveFailed"), t);
   }
 }
 

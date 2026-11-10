@@ -43,12 +43,6 @@ export type DeleteTimeEntryActionInput = {
 
 export type RestoreTimeEntryActionInput = DeleteTimeEntryActionInput;
 
-export type InactiveProjectWeekActionInput = {
-  projectId: string;
-  weekStartDate: string;
-  note?: string;
-};
-
 export type StartRunningTimerActionInput = {
   projectId: string;
   description: string;

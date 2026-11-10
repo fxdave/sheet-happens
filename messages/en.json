@@ -2178,8 +2178,7 @@
     },
     "week": {
       "editEntryNamed": "Edit {entry}",
-      "deleteEntryNamed": "Delete {entry}",
-      "capacity": "{logged} of {target}"
+      "deleteEntryNamed": "Delete {entry}"
     },
     "labels": {
       "thisWeek": "This week",
@@ -2188,17 +2187,13 @@
       "monthTotal": "Month total",
       "dayTotal": "Day total",
       "recent": "Recent",
-      "archivedProject": "Archived project",
-      "noDescription": "No description"
+      "archivedProject": "Archived project"
     },
     "actions": {
       "newEntry": "New entry",
-      "undo": "Undo",
       "discard": "Discard",
       "restoreDraft": "Restore draft",
-      "addEntry": "Add entry",
       "editEntry": "Edit entry",
-      "deleteEntry": "Delete entry",
       "edit": "Edit",
       "close": "Close",
       "cancel": "Cancel",
@@ -2210,22 +2205,8 @@
       "duplicatePreviousWeek": "Copy entries from the previous week into this week.",
       "stopTimerFirst": "Stop the running timer before starting another one."
     },
-    "grid": {
-      "projects": "Projects",
-      "total": "Total",
-      "dailyTotal": "Daily total",
-      "declaredMonthly": "Declared monthly",
-      "seeMonth": "See Month"
-    },
     "inactive": {
-      "title": "Inactive week",
-      "description": "No work on this project this week.",
-      "undo": "Undo inactive week",
-      "mark": "Mark as inactive week",
-      "removeEntriesFirst": "Remove entries first"
-    },
-    "help": {
-      "durationFormats": "Type time like 3.5, 3:30, 3h 20m, or 200m. Empty cells open the entry form because descriptions are required."
+      "title": "Inactive week"
     },
     "empty": {
       "title": "No active assigned projects",
@@ -2286,37 +2267,17 @@
     },
     "warnings": {
       "descriptionNeeded": "Description needed",
-      "descriptionNeededSentence": "Description needed.",
-      "descriptionSaved": "Description saved",
-      "futureDay": "Future day.",
-      "dailyTotalOver8": "Daily total is over 8h.",
-      "dailyTotalExact": "That is {hours} in one day.",
       "dailyTotalOver24Blocked": "Daily total cannot exceed 24 hours.",
       "dailyTotalOver24Projected": "Daily total cannot exceed 24 hours, the total would be {hours}.",
-      "dayHasOverlaps": "Day has overlapping entries.",
       "dayOver8Projected": "The selected day has more than 8 logged hours, the total is {hours}.",
       "longContinuousSession": "Long continuous session",
       "overlapsAnotherEntry": "Overlaps another entry",
       "durationOver24Blocked": "Duration cannot exceed 24 hours.",
       "longSessionNotBlocked": "This is a long continuous session. This is a warning, not a blocker."
     },
-    "source": {
-      "grid": "Grid",
-      "form": "Form",
-      "timer": "Timer",
-      "timed": "Timed",
-      "hours": "Hours",
-      "declared": "Declared",
-      "mcp": "MCP"
-    },
     "fieldErrors": {
       "durationPositive": "Duration must be greater than zero.",
       "endAfterStart": "End time must be after start time."
-    },
-    "breakdown": {
-      "entries": "Entries",
-      "noEntries": "No entries yet.",
-      "descriptionRequired": "A description is required per entry."
     },
     "errors": {
       "invalidDurationFormat": "Use time like 3.5, 3:30, 3h 20m, or 200m."
@@ -2359,11 +2320,7 @@
       "month": "this month"
     },
     "header": {
-      "open": "Open {date}",
-      "locked": "Locked by a submitted timesheet",
-      "onLeave": "On leave",
-      "today": "Today",
-      "over": "Over {target}"
+      "today": "Today"
     },
     "heat": {
       "label": "Days of {month}",
@@ -2454,8 +2411,8 @@
       "loadingEarlier": "Loading earlier days…",
       "loadFailed": "Earlier weeks could not be loaded.",
       "empty": "Nothing to show yet.",
-      "declaredElsewhere": "{project} is declared monthly — <link>see Months</link>",
-      "declaredElsewhereMany": "{count, plural, other {# projects are}} declared monthly — <link>see Months</link>",
+      "declaredElsewhere": "{project} is declared monthly — <link>see Weeks</link>",
+      "declaredElsewhereMany": "{count, plural, other {# projects are}} declared monthly — <link>see Weeks</link>",
       "periodTotal": "{count, plural, one {# week} other {# weeks}}",
       "adminModified": "Changed by an administrator"
     },
@@ -2477,8 +2434,6 @@
       "timerStopped": "Timer stopped and saved.",
       "draftSaved": "Draft saved.",
       "draftDiscarded": "Draft discarded.",
-      "inactiveWeekSaved": "Project marked inactive for this week.",
-      "inactiveWeekRemoved": "Inactive week removed.",
       "declarationSaved": "Declared hours saved.",
       "declarationWithdrawn": "Declared hours withdrawn.",
       "proofUploaded": "Hours proof uploaded.",
@@ -2499,8 +2454,6 @@
       "previousWeekDuplicateFailed": "The previous week could not be duplicated.",
       "draftSaveFailed": "The draft could not be saved.",
       "draftClearFailed": "The draft could not be cleared.",
-      "inactiveWeekSaveFailed": "The inactive week could not be saved.",
-      "inactiveWeekRemoveFailed": "The inactive week could not be removed.",
       "memberNotFound": "Member not found.",
       "timeEntryNotFound": "Time entry not found.",
       "entryLocked": "This entry is locked by a submitted timesheet.",

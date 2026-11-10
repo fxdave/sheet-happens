@@ -1,6 +1,9 @@
-import { isoWeekNumber } from "@/src/lib/date-values";
 import { formatDateRangeLabel, formatMonthLabel } from "@/src/lib/formatting";
-import type { MemberMonthOverview, MemberTimeDays, TimeGridWeek } from "@/src/server/time-tracking";
+import type {
+  MemberMonthCalendar,
+  MemberMonthOverview,
+  MemberTimeDays,
+} from "@/src/server/time-tracking";
 
 import type { TimePageData } from "./TimePageClient";
 import type { TimeTrackingTranslator } from "./time-entry-helpers";
@@ -35,7 +38,7 @@ export function resolvePeriod(
   locale: string,
 ): TimePeriod {
   if (data.view === "days") return daysPeriod(data.days, t, locale);
-  if (data.view === "weeks") return weeksPeriod(data.week, t, locale);
+  if (data.view === "weeks") return weeksPeriod(data.calendar, t, locale);
   return monthsPeriod(data.month, data.week.todayIso, t, locale);
 }
 
@@ -54,21 +57,26 @@ export function daysPeriod(days: MemberTimeDays, t: TimeTrackingTranslator, loca
   } satisfies TimePeriod;
 }
 
-export function weeksPeriod(week: TimeGridWeek, t: TimeTrackingTranslator, locale: string) {
+/** One calendar month; › stops at the current one. */
+export function weeksPeriod(
+  calendar: MemberMonthCalendar,
+  t: TimeTrackingTranslator,
+  locale: string,
+) {
+  const currentMonth = resolveMonthStartIso(calendar.todayIso);
+  const nextMonth = shiftMonthStartIso(calendar.monthStart, 1);
+
   return {
-    label: t("period.week", {
-      week: isoWeekNumber(week.weekStart),
-      range: formatDateRangeLabel(week.weekStart, week.weekEnd, locale),
-    }),
-    key: week.weekStart,
-    previousDay: week.previousWeek,
-    nextDay: week.nextWeek,
-    atToday: week.weekStart === week.thisWeek,
-    unit: t("period.unitWeek"),
-    month: week.weekStart.slice(0, 7),
+    label: formatMonthLabel(calendar.monthStart, locale),
+    key: calendar.monthStart,
+    previousDay: shiftMonthStartIso(calendar.monthStart, -1),
+    nextDay: nextMonth <= currentMonth ? nextMonth : null,
+    atToday: calendar.monthStart === currentMonth,
+    unit: t("period.unitMonth"),
+    month: calendar.monthStart.slice(0, 7),
     dayForMonth: (month: string) => `${month}-01`,
-    totalMinutes: week.entries.reduce((sum, entry) => sum + entry.durationMinutes, 0),
-    totalCaption: t("total.week"),
+    totalMinutes: calendar.totalMinutes,
+    totalCaption: t("total.month"),
   } satisfies TimePeriod;
 }
 

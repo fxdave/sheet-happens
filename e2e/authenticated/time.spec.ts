@@ -121,7 +121,9 @@ test("switches views from the tabs and the digit keys", async ({ page }) => {
     );
   }).toPass({ timeout: 60_000 });
   await expect(page).toHaveURL(/view=weeks/);
-  await expect(page.getByRole("button", { name: "Previous week" })).toBeVisible();
+  // Weeks is one calendar month, so the arrows step a month.
+  await expect(page.getByRole("button", { name: "Previous month" })).toBeVisible();
+  await expect(page.getByRole("group", { name: /^Week \d+, / }).first()).toBeVisible();
 
   await page.getByRole("heading", { level: 1 }).click();
   await page.keyboard.press("3");

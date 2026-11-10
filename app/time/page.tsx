@@ -6,6 +6,7 @@ import {
   requireActiveAppMember,
 } from "@/src/server/auth/app-access";
 import {
+  getMemberMonthCalendar,
   getMemberMonthOverview,
   getMemberTimeDays,
   getMemberWeeklyTimeGrid,
@@ -63,7 +64,18 @@ async function loadView(
   });
 
   if (view === "weeks" && clampView(view, resolveViewStops(week.projects)) === "weeks") {
-    return { view, week };
+    const currentMonth = getMonthStart(parseDateOnly(week.todayIso));
+    const anchorMonth = anchor ? getMonthStart(anchor) : currentMonth;
+    // A future month has nothing to show; it reads as this one, as a future day does in Days.
+    const monthStart = anchorMonth > currentMonth ? currentMonth : anchorMonth;
+    // Only a hybrid member has declarations to edit beside the calendar.
+    const hybrid = week.projects.some((project) => project.trackingMode === "DECLARED");
+    const [calendar, month] = await Promise.all([
+      getMemberMonthCalendar({ memberId, monthStart }),
+      hybrid ? getMemberMonthOverview({ memberId, monthStart }) : null,
+    ]);
+
+    return { view, week, calendar, month };
   }
 
   const month = await getMemberMonthOverview({
