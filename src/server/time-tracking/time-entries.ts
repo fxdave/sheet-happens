@@ -407,9 +407,71 @@ export async function getMemberWeeklyTimeGrid(input: {
   weekStart?: Date | null;
   now?: Date;
 }): Promise<TimeGridWeek> {
+  const member = await loadTrackingMember(input.memberId);
+  const todayIso = getTodayIsoInTimezone(member.timezone, input.now);
+  const thisWeekStart = getMonday(parseDateOnly(todayIso));
+  const weekStart = getMonday(input.weekStart ?? thisWeekStart);
+  const weekEnd = getWeekEnd(weekStart);
+
+  const [shared, entries, inactiveWeeks] = await Promise.all([
+    loadTrackingRangeContext({ member, from: weekStart, to: weekEnd }),
+    loadRangeEntries({ memberId: member.id, from: weekStart, to: weekEnd }),
+    prisma.inactiveProjectWeek.findMany({
+      where: {
+        memberId: member.id,
+        weekStartDate: weekStart,
+      },
+      select: {
+        projectId: true,
+        weekStartDate: true,
+        note: true,
+      },
+    }),
+  ]);
+
+  return {
+    memberId: member.id,
+    timezone: member.timezone,
+    todayIso,
+    weekStart: formatDateOnly(weekStart),
+    weekEnd: formatDateOnly(weekEnd),
+    previousWeek: formatDateOnly(addDays(weekStart, -7)),
+    nextWeek: formatDateOnly(addDays(weekStart, 7)),
+    thisWeek: formatDateOnly(thisWeekStart),
+    weekLabel: formatWeekRange(weekStart),
+    lockedMonthStarts: [...shared.lockedMonthStarts],
+    days: buildWeekDays({
+      weekStart,
+      todayIso,
+      lockedMonthStarts: shared.lockedMonthStarts,
+      leaveDates: shared.leaveDates,
+    }),
+    projects: shared.projects,
+    recentProjects: shared.recentProjects,
+    entries,
+    runningTimer: shared.runningTimer,
+    inactiveWeeks: inactiveWeeks.map((inactiveWeek) => ({
+      projectId: inactiveWeek.projectId,
+      weekStartDate: formatDateOnly(inactiveWeek.weekStartDate),
+      note: inactiveWeek.note,
+    })),
+    entryDraft: shared.entryDraft,
+    descriptionSuggestions: shared.descriptionSuggestions,
+  };
+}
+
+export type TrackingMember = {
+  id: string;
+  timezone: string;
+  deletedAt: Date | null;
+  defaultTrackingMode: TrackingModeMember["defaultTrackingMode"];
+};
+
+/** The member every `/time` read starts from; a deleted member reads as missing. */
+export async function loadTrackingMember(memberId: string): Promise<TrackingMember> {
   const member = await prisma.member.findUnique({
     where: {
-      id: input.memberId,
+      id: memberId,
     },
     select: {
       id: true,
@@ -423,66 +485,94 @@ export async function getMemberWeeklyTimeGrid(input: {
     throw new TimeTrackingError("Member not found.", "MEMBER_NOT_FOUND");
   }
 
-  const todayIso = getTodayIsoInTimezone(member.timezone, input.now);
-  const thisWeekStart = getMonday(parseDateOnly(todayIso));
-  const weekStart = getMonday(input.weekStart ?? thisWeekStart);
-  const weekEnd = getWeekEnd(weekStart);
-  const monthStarts = getMonthStartsInRange(weekStart, weekEnd);
+  return member;
+}
+
+/**
+ * The tracked entries in `[from, to]`, oldest first.
+ *
+ * §4 item 3, and the reason it is a `where` rather than a filter on the way out: a declared month
+ * is one 52-hour entry sitting on the 1st, and every `/time` aggregate and warning would absorb it.
+ * Excluding it here means the finer views literally cannot see one.
+ */
+export async function loadRangeEntries(input: {
+  memberId: string;
+  from: Date;
+  to: Date;
+}): Promise<TimeGridEntry[]> {
+  const entries = await prisma.timeEntry.findMany({
+    where: {
+      memberId: input.memberId,
+      deletedAt: null,
+      source: {
+        not: "DECLARED",
+      },
+      localDate: {
+        gte: input.from,
+        lte: input.to,
+      },
+    },
+    orderBy: [{ localDate: "asc" }, { createdAt: "asc" }],
+    select: {
+      id: true,
+      projectId: true,
+      projectAssignmentId: true,
+      localDate: true,
+      durationMinutes: true,
+      description: true,
+      source: true,
+      startedAt: true,
+      endedAt: true,
+      timezone: true,
+      lockedByTimesheetRevisionId: true,
+      updatedAt: true,
+      adminModifiedAt: true,
+      adminModificationReason: true,
+      adminModifiedBy: {
+        select: {
+          displayName: true,
+        },
+      },
+    },
+  });
+
+  return entries.map(mapTimeEntry);
+}
+
+export type TrackingRangeContext = {
+  lockedMonthStarts: Set<string>;
+  leaveDates: Set<string>;
+  projects: TimeGridAssignedProject[];
+  recentProjects: TimeGridAssignedProject[];
+  runningTimer: RunningTimerView | null;
+  entryDraft: TimeEntryDraftView | null;
+  descriptionSuggestions: DescriptionSuggestion[];
+};
+
+/**
+ * Everything a `/time` view needs about a date range besides its entries: locks, leave, the
+ * assignments, the recent-project chips, the timer, the draft and the description suggestions.
+ * Shared by the week grid and the day log so the two can never disagree about any of them.
+ */
+export async function loadTrackingRangeContext(input: {
+  member: TrackingMember;
+  from: Date;
+  to: Date;
+}): Promise<TrackingRangeContext> {
+  const { member, from, to } = input;
+  const monthStarts = getMonthStartsInRange(from, to);
 
   const [
     lockedMonthStarts,
     projectRows,
-    entries,
     recentEntries,
     runningTimer,
-    inactiveWeeks,
     entryDraft,
     suggestionRows,
     leaveDates,
   ] = await Promise.all([
     loadLockedMonthStarts({ memberId: member.id, monthStarts }),
-    loadAssignedProjects({ memberId: member.id, member, from: weekStart, to: weekEnd }),
-    prisma.timeEntry.findMany({
-      where: {
-        memberId: member.id,
-        deletedAt: null,
-        /* §4 item 3, and the reason it is a `where` rather than a filter on the way out: a
-             declared month is one 52-hour entry sitting on the 1st, and every `/time` aggregate
-             and warning — the 8h soft target, the 24h hard limit, `getCellWarnings`,
-             `getEntryWarnings`, `hasOverlaps`, every day and week total — would absorb it.
-             Excluding it here means L1-L3 literally cannot see one, so no downstream filter can be
-             forgotten later. The month reports declarations separately. */
-        source: {
-          not: "DECLARED",
-        },
-        localDate: {
-          gte: weekStart,
-          lte: weekEnd,
-        },
-      },
-      orderBy: [{ localDate: "asc" }, { createdAt: "asc" }],
-      select: {
-        id: true,
-        projectId: true,
-        projectAssignmentId: true,
-        localDate: true,
-        durationMinutes: true,
-        description: true,
-        source: true,
-        startedAt: true,
-        endedAt: true,
-        timezone: true,
-        lockedByTimesheetRevisionId: true,
-        updatedAt: true,
-        adminModifiedAt: true,
-        adminModificationReason: true,
-        adminModifiedBy: {
-          select: {
-            displayName: true,
-          },
-        },
-      },
-    }),
+    loadAssignedProjects({ memberId: member.id, member, from, to }),
     prisma.timeEntry.findMany({
       where: {
         memberId: member.id,
@@ -493,8 +583,8 @@ export async function getMemberWeeklyTimeGrid(input: {
           not: "DECLARED",
         },
         localDate: {
-          gte: addDays(weekEnd, -90),
-          lte: weekEnd,
+          gte: addDays(to, -90),
+          lte: to,
         },
       },
       distinct: ["projectId"],
@@ -504,17 +594,6 @@ export async function getMemberWeeklyTimeGrid(input: {
       },
     }),
     getRunningTimerForMember(member.id),
-    prisma.inactiveProjectWeek.findMany({
-      where: {
-        memberId: member.id,
-        weekStartDate: weekStart,
-      },
-      select: {
-        projectId: true,
-        weekStartDate: true,
-        note: true,
-      },
-    }),
     prisma.timeEntryDraft.findUnique({
       where: {
         memberId_draftKey: {
@@ -528,11 +607,10 @@ export async function getMemberWeeklyTimeGrid(input: {
         updatedAt: true,
       },
     }),
-    /* Anchored to the week being looked at, not to today: someone adding a forgotten entry in March
-       should be offered what they were writing in March. It also means the window over a fixed past
-       week is a fixed set of rows, which is what makes the e2e assertion possible. */
-    loadDescriptionSuggestionRows({ memberId: member.id, windowEnd: weekEnd }),
-    findFullDayLeaveDates(prisma, member.id, formatDateOnly(weekStart), formatDateOnly(weekEnd)),
+    /* Anchored to the range being looked at, not to today: someone adding a forgotten entry in
+       March should be offered what they were writing in March. */
+    loadDescriptionSuggestionRows({ memberId: member.id, windowEnd: to }),
+    findFullDayLeaveDates(prisma, member.id, formatDateOnly(from), formatDateOnly(to)),
   ]);
 
   const projectsById = new Map(projectRows.map((project) => [project.projectId, project]));
@@ -541,37 +619,16 @@ export async function getMemberWeeklyTimeGrid(input: {
     .filter((project): project is TimeGridAssignedProject => Boolean(project));
 
   return {
-    memberId: member.id,
-    timezone: member.timezone,
-    todayIso,
-    weekStart: formatDateOnly(weekStart),
-    weekEnd: formatDateOnly(weekEnd),
-    previousWeek: formatDateOnly(addDays(weekStart, -7)),
-    nextWeek: formatDateOnly(addDays(weekStart, 7)),
-    thisWeek: formatDateOnly(thisWeekStart),
-    weekLabel: formatWeekRange(weekStart),
-    lockedMonthStarts: [...lockedMonthStarts],
-    days: buildWeekDays({
-      weekStart,
-      todayIso,
-      lockedMonthStarts,
-      leaveDates,
-    }),
+    lockedMonthStarts,
+    leaveDates,
     projects: projectRows,
     recentProjects,
-    entries: entries.map(mapTimeEntry),
     runningTimer,
-    inactiveWeeks: inactiveWeeks.map((inactiveWeek) => ({
-      projectId: inactiveWeek.projectId,
-      weekStartDate: formatDateOnly(inactiveWeek.weekStartDate),
-      note: inactiveWeek.note,
-    })),
     entryDraft: mapTimeEntryDraft(entryDraft),
-    // Intersected against the assignments here, the same way `recentProjects` is: the read beside
-    // them could not know which projects this member has, and a suggestion for a project with no
-    // chip has nowhere to be used.
+    // Intersected against the assignments, like `recentProjects`: a suggestion for a project with
+    // no chip has nowhere to be used.
     descriptionSuggestions: buildDescriptionSuggestions(suggestionRows, {
-      anchor: weekEnd,
+      anchor: to,
       projectIds: projectRows.map((project) => project.projectId),
     }),
   };
@@ -946,179 +1003,147 @@ export async function restoreTimeEntry(input: TimeEntryRestoreInput) {
 }
 
 export async function startRunningTimer(input: RunningTimerStartInput) {
-  const description = normalizeDescription(input.description);
+  return prisma.$transaction((tx) => startRunningTimerInTx(tx, input));
+}
+
+/**
+ * Starts a timer, stopping the running one first if there is one — one transaction, so a failed
+ * start (a locked day, a leave day) leaves the old timer running rather than lost. Continue and
+ * the day log's composer use it so a member never meets "stop the running timer first".
+ */
+export async function switchRunningTimer(input: RunningTimerStartInput) {
   const now = input.now ?? new Date();
 
   return prisma.$transaction(async (tx) => {
-    const timezone = await getMemberTimezone(tx, input.memberId);
-    const localDate = parseDateOnly(getTodayIsoInTimezone(timezone, now));
-
-    await assertDateOpen(tx, input.memberId, localDate);
-    await assertDateNotOnLeave(tx, input.memberId, localDate);
-
-    const assignment = await findAssignmentForDate(tx, {
-      memberId: input.memberId,
-      projectId: input.projectId,
-      localDate,
+    const running = await tx.runningTimer.findUnique({
+      where: { memberId: input.memberId },
+      select: { id: true },
     });
+    const stopped = running ? await stopRunningTimerInTx(tx, { ...input, now }) : null;
+    const started = await startRunningTimerInTx(tx, { ...input, now });
 
-    const existing = await tx.runningTimer.findUnique({
-      where: {
-        memberId: input.memberId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    if (existing) {
-      throw new TimeTrackingError(
-        "Stop the running timer before starting another one.",
-        "TIMER_ALREADY_RUNNING",
-      );
-    }
-
-    const timer = await tx.runningTimer.create({
-      data: {
-        memberId: input.memberId,
-        projectId: assignment.projectId,
-        projectAssignmentId: assignment.id,
-        description,
-        startedAt: now,
-        timezone,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    await tx.auditLog.create({
-      data: {
-        actorMemberId: input.actorMemberId,
-        action: "running_timer.started",
-        targetType: "running_timer",
-        targetId: timer.id,
-        after: {
-          projectId: assignment.projectId,
-          projectAssignmentId: assignment.id,
-          description,
-          startedAt: now.toISOString(),
-          timezone,
-        },
-        ...input.requestMetadata,
-      },
-    });
-
-    return {
-      id: timer.id,
-    };
+    return { stopped, started };
   });
 }
 
+async function startRunningTimerInTx(tx: TimeTrackingTransaction, input: RunningTimerStartInput) {
+  const description = normalizeDescription(input.description);
+  const now = input.now ?? new Date();
+
+  const timezone = await getMemberTimezone(tx, input.memberId);
+  const localDate = parseDateOnly(getTodayIsoInTimezone(timezone, now));
+
+  await assertDateOpen(tx, input.memberId, localDate);
+  await assertDateNotOnLeave(tx, input.memberId, localDate);
+
+  const assignment = await findAssignmentForDate(tx, {
+    memberId: input.memberId,
+    projectId: input.projectId,
+    localDate,
+  });
+
+  const existing = await tx.runningTimer.findUnique({
+    where: {
+      memberId: input.memberId,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  if (existing) {
+    throw new TimeTrackingError(
+      "Stop the running timer before starting another one.",
+      "TIMER_ALREADY_RUNNING",
+    );
+  }
+
+  const timer = await tx.runningTimer.create({
+    data: {
+      memberId: input.memberId,
+      projectId: assignment.projectId,
+      projectAssignmentId: assignment.id,
+      description,
+      startedAt: now,
+      timezone,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  await tx.auditLog.create({
+    data: {
+      actorMemberId: input.actorMemberId,
+      action: "running_timer.started",
+      targetType: "running_timer",
+      targetId: timer.id,
+      after: {
+        projectId: assignment.projectId,
+        projectAssignmentId: assignment.id,
+        description,
+        startedAt: now.toISOString(),
+        timezone,
+      },
+      ...input.requestMetadata,
+    },
+  });
+
+  return {
+    id: timer.id,
+  };
+}
+
 export async function stopRunningTimer(input: RunningTimerStopInput) {
+  return prisma.$transaction((tx) => stopRunningTimerInTx(tx, input));
+}
+
+async function stopRunningTimerInTx(tx: TimeTrackingTransaction, input: RunningTimerStopInput) {
   const endedAt = input.now ?? new Date();
 
-  return prisma.$transaction(async (tx) => {
-    const timer = await tx.runningTimer.findUnique({
-      where: {
-        memberId: input.memberId,
-      },
-      select: {
-        id: true,
-        memberId: true,
-        projectId: true,
-        projectAssignmentId: true,
-        description: true,
-        startedAt: true,
-        timezone: true,
-      },
-    });
-
-    if (!timer || timer.memberId !== input.memberId) {
-      throw new TimeTrackingError("No timer is running.", "NO_TIMER_RUNNING");
-    }
-
-    if (endedAt <= timer.startedAt) {
-      throw new TimeTrackingError("Timer end time must be after start time.", "END_BEFORE_START");
-    }
-
-    const localDate = parseDateOnly(getTodayIsoInTimezone(timer.timezone, timer.startedAt));
-    await assertDateOpen(tx, input.memberId, localDate);
-    await assertDateNotOnLeave(tx, input.memberId, localDate);
-    /* A timer cannot be *started* on a declared assignment, but the mode-switch guard counts
-       entries and a running timer is not one yet — so the assignment can change under a timer that
-       is already running. Re-reading it here is the last point before the entry is written. */
-    await assertAssignmentStillTracked(tx, timer.projectAssignmentId);
-
-    const durationMinutes = Math.max(
-      1,
-      Math.ceil((endedAt.getTime() - timer.startedAt.getTime()) / 60_000),
-    );
-    const description = timer.description.trim() || "Tracked with timer";
-
-    const currentDailyMinutes = await getDailyLoggedMinutes(tx, {
+  const timer = await tx.runningTimer.findUnique({
+    where: {
       memberId: input.memberId,
-      localDate,
-    });
+    },
+    select: {
+      id: true,
+      memberId: true,
+      projectId: true,
+      projectAssignmentId: true,
+      description: true,
+      startedAt: true,
+      timezone: true,
+    },
+  });
 
-    if (currentDailyMinutes + durationMinutes > DAILY_HARD_LIMIT_MINUTES) {
-      await tx.runningTimer.delete({
-        where: {
-          id: timer.id,
-        },
-        select: {
-          id: true,
-        },
-      });
+  if (!timer || timer.memberId !== input.memberId) {
+    throw new TimeTrackingError("No timer is running.", "NO_TIMER_RUNNING");
+  }
 
-      await tx.auditLog.create({
-        data: {
-          actorMemberId: input.actorMemberId,
-          action: "running_timer.discarded_daily_limit",
-          targetType: "running_timer",
-          targetId: timer.id,
-          before: {
-            projectId: timer.projectId,
-            projectAssignmentId: timer.projectAssignmentId,
-            startedAt: timer.startedAt.toISOString(),
-            endedAt: endedAt.toISOString(),
-            durationMinutes,
-            currentDailyMinutes,
-          },
-          after: {
-            saved: false,
-            reason: "daily_total_limit",
-          },
-          ...input.requestMetadata,
-        },
-      });
+  if (endedAt <= timer.startedAt) {
+    throw new TimeTrackingError("Timer end time must be after start time.", "END_BEFORE_START");
+  }
 
-      return {
-        discarded: true as const,
-        reason: "DAILY_LIMIT" as const,
-      };
-    }
+  const localDate = parseDateOnly(getTodayIsoInTimezone(timer.timezone, timer.startedAt));
+  await assertDateOpen(tx, input.memberId, localDate);
+  await assertDateNotOnLeave(tx, input.memberId, localDate);
+  /* A timer cannot be *started* on a declared assignment, but the mode-switch guard counts
+     entries and a running timer is not one yet — so the assignment can change under a timer that
+     is already running. Re-reading it here is the last point before the entry is written. */
+  await assertAssignmentStillTracked(tx, timer.projectAssignmentId);
 
-    const entry = await tx.timeEntry.create({
-      data: {
-        memberId: input.memberId,
-        projectId: timer.projectId,
-        projectAssignmentId: timer.projectAssignmentId,
-        localDate,
-        timezone: timer.timezone,
-        startedAt: timer.startedAt,
-        endedAt,
-        durationMinutes,
-        description,
-        source: "TIMER",
-        createdByMemberId: input.actorMemberId,
-        updatedByMemberId: input.actorMemberId,
-      },
-      select: {
-        id: true,
-      },
-    });
+  const durationMinutes = Math.max(
+    1,
+    Math.ceil((endedAt.getTime() - timer.startedAt.getTime()) / 60_000),
+  );
+  const description = timer.description.trim() || "Tracked with timer";
 
+  const currentDailyMinutes = await getDailyLoggedMinutes(tx, {
+    memberId: input.memberId,
+    localDate,
+  });
+
+  if (currentDailyMinutes + durationMinutes > DAILY_HARD_LIMIT_MINUTES) {
     await tx.runningTimer.delete({
       where: {
         id: timer.id,
@@ -1131,30 +1156,86 @@ export async function stopRunningTimer(input: RunningTimerStopInput) {
     await tx.auditLog.create({
       data: {
         actorMemberId: input.actorMemberId,
-        action: "running_timer.stopped",
-        targetType: "time_entry",
-        targetId: entry.id,
+        action: "running_timer.discarded_daily_limit",
+        targetType: "running_timer",
+        targetId: timer.id,
         before: {
-          runningTimerId: timer.id,
           projectId: timer.projectId,
           projectAssignmentId: timer.projectAssignmentId,
           startedAt: timer.startedAt.toISOString(),
+          endedAt: endedAt.toISOString(),
+          durationMinutes,
+          currentDailyMinutes,
         },
         after: {
-          localDate: formatDateOnly(localDate),
-          durationMinutes,
-          endedAt: endedAt.toISOString(),
-          source: "TIMER",
+          saved: false,
+          reason: "daily_total_limit",
         },
         ...input.requestMetadata,
       },
     });
 
     return {
-      id: entry.id,
-      saved: true as const,
+      discarded: true as const,
+      reason: "DAILY_LIMIT" as const,
     };
+  }
+
+  const entry = await tx.timeEntry.create({
+    data: {
+      memberId: input.memberId,
+      projectId: timer.projectId,
+      projectAssignmentId: timer.projectAssignmentId,
+      localDate,
+      timezone: timer.timezone,
+      startedAt: timer.startedAt,
+      endedAt,
+      durationMinutes,
+      description,
+      source: "TIMER",
+      createdByMemberId: input.actorMemberId,
+      updatedByMemberId: input.actorMemberId,
+    },
+    select: {
+      id: true,
+    },
   });
+
+  await tx.runningTimer.delete({
+    where: {
+      id: timer.id,
+    },
+    select: {
+      id: true,
+    },
+  });
+
+  await tx.auditLog.create({
+    data: {
+      actorMemberId: input.actorMemberId,
+      action: "running_timer.stopped",
+      targetType: "time_entry",
+      targetId: entry.id,
+      before: {
+        runningTimerId: timer.id,
+        projectId: timer.projectId,
+        projectAssignmentId: timer.projectAssignmentId,
+        startedAt: timer.startedAt.toISOString(),
+      },
+      after: {
+        localDate: formatDateOnly(localDate),
+        durationMinutes,
+        endedAt: endedAt.toISOString(),
+        source: "TIMER",
+      },
+      ...input.requestMetadata,
+    },
+  });
+
+  return {
+    id: entry.id,
+    saved: true as const,
+  };
 }
 
 export async function copyPreviousDayEntries(

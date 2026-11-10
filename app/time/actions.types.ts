@@ -1,3 +1,5 @@
+import type { TimeDaysWeek, TimeGridAssignedProject } from "@/src/server/time-tracking";
+
 export type TimeTrackingActionStatus = "idle" | "success" | "error";
 
 export type TimeTrackingActionState = {
@@ -93,3 +95,18 @@ export type DeleteMonthlyHourDeclarationActionInput = {
   projectId: string;
   periodStart: string;
 };
+
+export type LoadEarlierTimeDaysActionInput = {
+  /** The first day already shown; the page returned ends the day before it. */
+  before: string;
+};
+
+export type LoadEarlierTimeDaysActionResult =
+  | {
+      status: "success";
+      weeks: TimeDaysWeek[];
+      /** Assignments over the loaded weeks, for entries on projects the first page did not know. */
+      projects: TimeGridAssignedProject[];
+      lockedMonthStarts: string[];
+    }
+  | { status: "error"; message: string };

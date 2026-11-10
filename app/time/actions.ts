@@ -12,6 +12,7 @@ import { requireActiveAppMemberForAction } from "@/src/server/auth/app-access";
 import { AuthenticationError, AuthorizationError } from "@/src/server/auth/session";
 import { ObjectStorageConfigurationError } from "@/src/server/storage";
 import {
+  addDays,
   copyPreviousDayEntries,
   createTimeEntry,
   DeclarationError,
@@ -19,6 +20,7 @@ import {
   deleteTimeEntry,
   deleteTimeEntryDraft,
   duplicatePreviousWeek,
+  getMemberTimeDays,
   HOURS_PROOF_MAX_BYTES,
   markInactiveProjectWeek,
   parseDateOnly,
@@ -27,6 +29,7 @@ import {
   saveTimeEntryDraft,
   startRunningTimer,
   stopRunningTimer,
+  switchRunningTimer,
   TimeTrackingDateError,
   type TimeTrackingDateErrorCode,
   TimeTrackingError,
@@ -46,6 +49,8 @@ import type {
   DeleteTimeEntryActionInput,
   DuplicatePreviousWeekActionInput,
   InactiveProjectWeekActionInput,
+  LoadEarlierTimeDaysActionInput,
+  LoadEarlierTimeDaysActionResult,
   RestoreTimeEntryActionInput,
   SaveMonthlyHourDeclarationActionInput,
   SaveTimeEntryDraftActionInput,
@@ -125,6 +130,10 @@ const startRunningTimerSchema = z.object({
     .trim()
     .min(1, "Description is required.")
     .max(1000, "Description must be 1000 characters or less."),
+});
+
+const loadEarlierTimeDaysSchema = z.object({
+  before: z.string().trim().refine(isDateInputValue, "Choose a valid date."),
 });
 
 const copyPreviousDayEntriesSchema = z.object({
@@ -382,6 +391,75 @@ export async function stopRunningTimerAction(): Promise<TimeTrackingActionState>
     };
   } catch (error) {
     return mapTimeTrackingActionError(error, t("errors.timerStopFailed"), t);
+  }
+}
+
+/** Continue and the day log's composer: start a timer, stopping a running one first. */
+export async function switchRunningTimerAction(
+  input: StartRunningTimerActionInput,
+): Promise<TimeTrackingActionState> {
+  const t = await getTranslations("TimeTrackingActions");
+  const parsed = startRunningTimerSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return {
+      status: "error",
+      message: t("errors.fixFields"),
+      fieldErrors: translateEntryFieldErrors(getEntryFieldErrors(parsed.error), t),
+    };
+  }
+
+  try {
+    const { member } = await requireActiveAppMemberForAction();
+    const result = await switchRunningTimer({
+      ...parsed.data,
+      memberId: member.id,
+      actorMemberId: member.id,
+      requestMetadata: await getTimeTrackingRequestMetadata(),
+    });
+
+    revalidatePath("/time");
+
+    return {
+      status: "success",
+      message:
+        result.stopped && "discarded" in result.stopped
+          ? t("success.timerSwitchedDiscarded")
+          : result.stopped
+            ? t("success.timerSwitched")
+            : t("success.timerStarted"),
+    };
+  } catch (error) {
+    return mapTimeTrackingActionError(error, t("errors.timerStartFailed"), t);
+  }
+}
+
+/** The day log's infinite scroll: the week that ends the day before `before`. */
+export async function loadEarlierTimeDaysAction(
+  input: LoadEarlierTimeDaysActionInput,
+): Promise<LoadEarlierTimeDaysActionResult> {
+  const t = await getTranslations("TimeTrackingActions");
+  const parsed = loadEarlierTimeDaysSchema.safeParse(input);
+
+  if (!parsed.success) return { status: "error", message: t("errors.fixFields") };
+
+  try {
+    const { member } = await requireActiveAppMemberForAction();
+    const page = await getMemberTimeDays({
+      memberId: member.id,
+      endDay: addDays(parseDateOnly(parsed.data.before), -1),
+      weeks: 1,
+    });
+
+    return {
+      status: "success",
+      weeks: page.weeks,
+      projects: page.projects,
+      lockedMonthStarts: page.lockedMonthStarts,
+    };
+  } catch (error) {
+    const mapped = mapTimeTrackingActionError(error, t("errors.generic"), t);
+    return { status: "error", message: mapped.message };
   }
 }
 

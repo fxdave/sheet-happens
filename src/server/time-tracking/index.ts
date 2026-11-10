@@ -11,6 +11,7 @@ export {
   saveTimeEntryDraft,
   startRunningTimer,
   stopRunningTimer,
+  switchRunningTimer,
   TimeTrackingError,
   unmarkInactiveProjectWeek,
   updateTimeEntry,
@@ -37,6 +38,8 @@ export type {
   TimeTrackingErrorCode,
   TimeTrackingRequestMetadata,
 } from "./time-entries";
+export { buildTimeDaysWeeks, getMemberTimeDays, TIME_DAYS_PAGE_WEEKS } from "./time-days";
+export type { MemberTimeDays, TimeDaysDay, TimeDaysWeek } from "./time-days";
 export {
   buildDescriptionSuggestions,
   loadDescriptionSuggestionRows,

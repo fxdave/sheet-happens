@@ -2547,7 +2547,9 @@
       "declarationSaved": "Bevallott órák mentve.",
       "declarationWithdrawn": "Bevallott órák visszavonva.",
       "proofUploaded": "Óraigazolás feltöltve.",
-      "timeEntryRestored": "Időbejegyzés visszaállítva."
+      "timeEntryRestored": "Időbejegyzés visszaállítva.",
+      "timerSwitched": "Időmérő elindítva. Az előző leállítva és mentve.",
+      "timerSwitchedDiscarded": "Időmérő elindítva. Az előző nem lett mentve, mert a nap túllépte volna a 24 órát."
     },
     "errors": {
       "generic": "Valami hiba történt.",

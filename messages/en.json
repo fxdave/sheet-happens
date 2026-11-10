@@ -2547,7 +2547,9 @@
       "declarationSaved": "Declared hours saved.",
       "declarationWithdrawn": "Declared hours withdrawn.",
       "proofUploaded": "Hours proof uploaded.",
-      "timeEntryRestored": "Time entry restored."
+      "timeEntryRestored": "Time entry restored.",
+      "timerSwitched": "Timer started. The previous one was stopped and saved.",
+      "timerSwitchedDiscarded": "Timer started. The previous one was not saved: the day would have passed 24 hours."
     },
     "errors": {
       "generic": "Something went wrong.",
