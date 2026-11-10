@@ -21,6 +21,8 @@ import { TimePageClient, type TimePageData } from "./TimePageClient";
 import { clampView, resolveTimeLocation, resolveViewStops, type TimeView } from "./view";
 
 export const dynamic = "force-dynamic";
+/** Seconds a visited tab or period is reused on the client; mutations evict it at once. */
+export const unstable_dynamicStaleTime = 30;
 
 type TimePageProps = {
   searchParams?: Promise<Record<string, string | string[] | undefined>>;

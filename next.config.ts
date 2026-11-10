@@ -10,12 +10,11 @@ const nextConfig: NextConfig = {
       bodySizeLimit: "12mb",
     },
     /**
-     * Reuse a visited dynamic page for 30 s, so going back to a `/time` tab is instant. A full
-     * prefetch lives for `static`, shortened from 5 min so a view warmed in the background is never
-     * long out of date. Every mutation here calls `revalidatePath`, which evicts both at once.
+     * A full prefetch (the `/time` tabs warm each other) lives for `static`, shortened from 5 min so
+     * a view warmed in the background is never long out of date. A mutation's `revalidatePath`
+     * evicts it sooner. How long a *visited* page is reused is set per page, in `app/time/page.tsx`.
      */
     staleTimes: {
-      dynamic: 30,
       static: 60,
     },
   },
