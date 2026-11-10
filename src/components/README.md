@@ -64,7 +64,7 @@ Visual baseline workflow:
 
 Implemented coverage:
 
-- UI primitives: Avatar, Badge, BulkBar, Button, Calendar, Card, Checkbox, ChipButton, CodeInput, Combobox, Command, DataTable, DatePicker, DateRangePicker, Dialog, Drawer, Dropdown, Dropzone, ErrorState, Field, FormMessage, FormSection, IconButton, Input, ListRow, LockedState, MonthPicker, Pager, PasswordInput, Popover, ProjectColorSwatch, ResultBanner, SectionHead, SegmentedControl, Select, Skeleton, StrengthMeter, Switch, Tabs, Textarea, TimeInput, Tooltip.
+- UI primitives: Avatar, Badge, BulkBar, Button, Calendar, Card, Checkbox, ChipButton, CodeInput, Combobox, Command, DataTable, DatePicker, DateRangePicker, Dialog, Drawer, Dropdown, Dropzone, ErrorState, Field, FormMessage, FormSection, IconButton, Input, ListRow, LockedState, MonthPicker, Pager, PasswordInput, Popover, ProjectColorSwatch, ResultBanner, SectionHead, SegmentedControl, Select, ShortcutChip, Skeleton, StrengthMeter, Switch, Tabs, Textarea, TimeInput, Tooltip.
 
 Form control conventions:
 
@@ -92,7 +92,7 @@ Form control conventions:
   never call `useTranslations` themselves.
 - `TimeInput` is a styling wrapper around the native `<input type="time">`, deliberately not
   a popover. See the note on the component before changing it.
-- Product blocks: AuthScreens, ChartPrimitives, DashboardCards, DayAgenda, DayColumnHeader, DayRibbon, DocumentPreview, EmptyState, EntryCard, FlaggedUserList, InfoPageEditor, InvoiceUploadPanel, MonthHeatNavigator, MonthRow, NotificationPreferences, PayslipAdminTable, PayslipMonthList, Payslips, PayslipSummaryCard, PayslipUploadPanel, PayslipViewer, PdfViewer, PeopleTable, PeriodNavigator, PeriodTotal, PreferenceControls, ProfileSettingsPanel, ProjectDrawer, ProjectGroupsTable, ProjectPicker, QuickEntryComposer, RateDrawer, ReportChartCard, ReportExportDialog, ReportFilterBar, Reports, ReportStatTile, RejectDialog, ReviewActionBar, ReviewDiffList, ReviewQueueTable, SecurityMethodList, SettingsPanels, ShortcutSheet, StatCard, StatusOverview, StatusPill, SubmitTimesheetDialog, TimeBreakdownDialog, TimeEntryForm, TimeGridTimer, TimerStartDialog, TimeScopeBar, TimesheetStepper, TimesheetSummaryCard, TotpSetupDialog, WeekAgenda, WeeklyTimeGrid, TimesheetComponents, AdminReview, ManagementViews, Toast, TweaksPanel.
+- Product blocks: AuthScreens, ChartPrimitives, DashboardCards, DayColumnHeader, DayLog, DocumentPreview, EmptyState, FlaggedUserList, InfoPageEditor, InvoiceUploadPanel, MonthHeatNavigator, MonthRow, NotificationPreferences, PayslipAdminTable, PayslipMonthList, Payslips, PayslipSummaryCard, PayslipUploadPanel, PayslipViewer, PdfViewer, PeopleTable, PeriodNavigator, PeriodTotal, PreferenceControls, ProfileSettingsPanel, ProjectDrawer, ProjectGroupsTable, ProjectPicker, RateDrawer, ReportChartCard, ReportExportDialog, ReportFilterBar, Reports, ReportStatTile, RejectDialog, ReviewActionBar, ReviewDiffList, ReviewQueueTable, SecurityMethodList, SettingsPanels, ShortcutSheet, StatCard, StatusOverview, StatusPill, SubmitTimesheetDialog, TimeBreakdownDialog, TimeEntryForm, TimeGridTimer, TimerComposer, TimerStartDialog, TimeViewPanel, TimesheetStepper, TimesheetSummaryCard, TotpSetupDialog, WeeklyTimeGrid, TimesheetComponents, AdminReview, ManagementViews, Toast, TweaksPanel.
 - Layout blocks: AppShell, CommandPalette, CommandPill, LanguageToggle, MobileBottomBar, NotificationButton, ThemeProvider, UserMenu.
 
 Readiness tracking:

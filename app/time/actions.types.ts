@@ -99,6 +99,8 @@ export type DeleteMonthlyHourDeclarationActionInput = {
 export type LoadEarlierTimeDaysActionInput = {
   /** The first day already shown; the page returned ends the day before it. */
   before: string;
+  /** More than one re-reads every page already scrolled in, after a write. */
+  weeks?: number;
 };
 
 export type LoadEarlierTimeDaysActionResult =

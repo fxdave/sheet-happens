@@ -70,7 +70,8 @@ export type EntryModalState =
 
 export type EntryModalProps = {
   state: NonNullable<EntryModalState>;
-  week: TimeGridWeek;
+  /** The entries a day total is projected from, and the bounds of the date picker. */
+  week: Pick<TimeGridWeek, "entries" | "weekStart" | "weekEnd">;
   projects: TimeGridAssignedProject[];
   /** The member's own recent descriptions, scoped here to whichever project is selected. */
   suggestions: DescriptionSuggestionsController;

@@ -12,11 +12,9 @@ import {
   STAGGER_ENTRY,
   dayLayoutId,
   entryEnterTransition,
-  entryLayoutId,
   entryStaggerDelay,
   settleVariants,
   springThumb,
-  viewVariants,
 } from "./motion";
 
 describe("motion tokens", () => {
@@ -41,40 +39,6 @@ describe("motion tokens", () => {
     for (const duration of [DURATION_LEVEL, DURATION_STEP, DURATION_SETTLE]) {
       expect(duration).toBeLessThan(0.3);
     }
-  });
-});
-
-describe("viewVariants", () => {
-  it("slides a step in from the side it came from and out the other way", () => {
-    expect(viewVariants.enter({ kind: "step", direction: 1 })).toEqual({
-      opacity: 0,
-      x: DISTANCE_STEP,
-    });
-    expect(viewVariants.exit({ kind: "step", direction: 1 })).toMatchObject({
-      opacity: 0,
-      x: -DISTANCE_STEP,
-    });
-    expect(viewVariants.enter({ kind: "jump", direction: -1 })).toEqual({
-      opacity: 0,
-      x: -DISTANCE_STEP,
-    });
-  });
-
-  it("scales a zoom in from smaller and a zoom out from larger", () => {
-    expect(viewVariants.enter({ kind: "zoom", direction: "in" })).toEqual({
-      opacity: 0,
-      scale: SCALE_ZOOM_IN,
-    });
-    expect(viewVariants.enter({ kind: "zoom", direction: "out" })).toEqual({
-      opacity: 0,
-      scale: SCALE_ZOOM_OUT,
-    });
-  });
-
-  it("crossfades a re-lens and anything it was not told about", () => {
-    expect(viewVariants.enter({ kind: "lens" })).toEqual({ opacity: 0, y: 4 });
-    expect(viewVariants.enter(undefined)).toEqual({ opacity: 0 });
-    expect(viewVariants.exit({ kind: "lens" })).toMatchObject({ opacity: 0 });
   });
 });
 
@@ -124,9 +88,7 @@ describe("entryEnterTransition", () => {
 });
 
 describe("layout ids", () => {
-  it("names a day and an entry distinctly", () => {
+  it("names a day", () => {
     expect(dayLayoutId("2026-09-02")).toBe("day-2026-09-02");
-    expect(entryLayoutId("entry-1")).toBe("entry-entry-1");
-    expect(dayLayoutId("2026-09-02")).not.toBe(entryLayoutId("2026-09-02"));
   });
 });

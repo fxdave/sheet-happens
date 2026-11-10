@@ -2,8 +2,6 @@ import en from "@/messages/en.json";
 import hu from "@/messages/hu.json";
 import { describe, expect, it } from "vitest";
 
-import { parseDurationToMinutes } from "@/src/lib/duration";
-
 import { supportedLocales } from "./locales";
 
 /**
@@ -49,19 +47,6 @@ describe("message catalogues", () => {
       });
 
       expect(empty, `empty messages in ${locale}`).toEqual([]);
-    }
-  });
-
-  // The placeholder is what a member copies, so it must be input the duration parser accepts.
-  // The parser reads `h`/`m` in every locale; the Hungarian `2ó30` was rejected on submit.
-  it("offers a composer duration placeholder the parser accepts", () => {
-    for (const [locale, messages] of [
-      ["en", en],
-      ["hu", hu],
-    ] as const) {
-      const placeholder = messages.TimeTracking.composer.durationPlaceholder;
-
-      expect(parseDurationToMinutes(placeholder), `${locale}: ${placeholder}`).toBe(150);
     }
   });
 });

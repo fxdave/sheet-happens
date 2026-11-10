@@ -1,41 +1,33 @@
 "use client";
 
-import {
-  CalendarDays,
-  CalendarRange,
-  Columns3,
-  Copy,
-  Keyboard,
-  LayoutGrid,
-  List,
-  Play,
-  Plus,
-  Square,
-  Sun,
-} from "lucide-react";
+import { CalendarDays, Keyboard, LayoutGrid, List, Play, Plus, Square, Sun } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useEffect, useState } from "react";
 
 import { CommandPalette, type CommandPaletteItem } from "@/src/components/layout/CommandPalette";
 
-import type { TimeScope, WeekLens } from "./zoom";
+import type { TimeView } from "./view";
 
 export type TimeCommand =
   | { type: "today" }
-  | { type: "scope"; scope: TimeScope }
-  | { type: "lens"; lens: WeekLens }
+  | { type: "view"; view: TimeView }
   | { type: "compose" }
   | { type: "timer" }
-  | { type: "duplicateWeek" }
-  | { type: "copyYesterday" }
   | { type: "shortcuts" };
 
 type TimeCommandPaletteProps = {
-  stops: readonly TimeScope[];
+  stops: readonly TimeView[];
   timerRunning: boolean;
   canCompose: boolean;
   onCommand: (command: TimeCommand) => void;
 };
+
+const viewCommandKeys = {
+  days: "commands.viewDays",
+  weeks: "commands.viewWeeks",
+  months: "commands.viewMonths",
+} as const;
+const viewIcons = { days: List, weeks: CalendarDays, months: LayoutGrid } as const;
 
 /**
  * `⌘K` on `/time`: every action on the page, searchable by name in both locales (§8 of
@@ -77,33 +69,14 @@ export function TimeCommandPalette({
       group,
       command: { type: "today" },
     },
-    ...stops.map((scope) => ({
-      id: `scope-${scope}`,
-      label: t(scopeCommandKey(scope)),
-      shortcut: String(stops.indexOf(scope) + 1),
-      icon: scope === "day" ? CalendarDays : scope === "week" ? Columns3 : CalendarRange,
+    ...stops.map((view, index) => ({
+      id: `view-${view}`,
+      label: t(viewCommandKeys[view]),
+      shortcut: String(index + 1),
+      icon: viewIcons[view],
       group,
-      command: { type: "scope", scope } as const,
+      command: { type: "view", view } as const,
     })),
-    ...(stops.includes("week")
-      ? [
-          {
-            id: "lens-agenda",
-            label: t("commands.lensAgenda"),
-            icon: List,
-            group,
-            command: { type: "lens", lens: "agenda" } as const,
-          },
-          {
-            id: "lens-grid",
-            label: t("commands.lensGrid"),
-            shortcut: "G",
-            icon: LayoutGrid,
-            group,
-            command: { type: "lens", lens: "grid" } as const,
-          },
-        ]
-      : []),
     {
       id: "new-entry",
       label: t("commands.newEntry"),
@@ -131,22 +104,6 @@ export function TimeCommandPalette({
           disabled: !canCompose,
           command: { type: "timer" },
         },
-    {
-      id: "duplicate-week",
-      label: t("commands.duplicateLastWeek"),
-      icon: Copy,
-      group,
-      disabled: !canCompose,
-      command: { type: "duplicateWeek" },
-    },
-    {
-      id: "copy-yesterday",
-      label: t("commands.copyYesterday"),
-      icon: Copy,
-      group,
-      disabled: !canCompose,
-      command: { type: "copyYesterday" },
-    },
     {
       id: "shortcuts",
       label: t("commands.shortcuts"),
@@ -183,15 +140,4 @@ export function TimeCommandPalette({
       }}
     />
   );
-}
-
-function scopeCommandKey(scope: TimeScope) {
-  switch (scope) {
-    case "day":
-      return "commands.viewDay";
-    case "week":
-      return "commands.viewWeek";
-    case "month":
-      return "commands.viewMonth";
-  }
 }

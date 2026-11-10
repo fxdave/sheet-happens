@@ -2,10 +2,12 @@ export {
   formatDateLabel,
   formatDateRangeLabel,
   formatDateTime,
+  formatDayCardLabel,
   formatDayHeading,
   formatMonthLabel,
   formatMonthName,
   formatPeriodRange,
+  formatShortDateRangeLabel,
   formatTimestamp,
   formatWeekdayLabel,
 } from "./dates";

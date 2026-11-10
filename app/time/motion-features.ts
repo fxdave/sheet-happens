@@ -1,11 +1,5 @@
 /**
- * The dynamic-import boundary for Motion's feature bundle.
- *
- * `LazyMotion` loads this on the client after first paint, which is what keeps ~30 KB of animation
- * and layout-projection code out of every other route — `/time` is the only consumer.
- *
- * **`domMax`, not `domAnimation`.** The two differ by exactly the thing this feature is built on:
- * `domAnimation` omits layout projection and drag, so `layout` and `layoutId` would silently become
- * no-ops and the level change would go back to being three screens swapping.
+ * Motion's feature bundle, loaded after first paint so `/time` is its only payer. `domAnimation`:
+ * the views no longer morph between each other, so layout projection is not needed.
  */
-export { domMax as default } from "motion/react";
+export { domAnimation as default } from "motion/react";

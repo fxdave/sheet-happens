@@ -134,6 +134,7 @@ const startRunningTimerSchema = z.object({
 
 const loadEarlierTimeDaysSchema = z.object({
   before: z.string().trim().refine(isDateInputValue, "Choose a valid date."),
+  weeks: z.number().int().min(1).max(52).optional(),
 });
 
 const copyPreviousDayEntriesSchema = z.object({
@@ -434,7 +435,7 @@ export async function switchRunningTimerAction(
   }
 }
 
-/** The day log's infinite scroll: the week that ends the day before `before`. */
+/** The day log's infinite scroll: `weeks` weeks (default one) ending the day before `before`. */
 export async function loadEarlierTimeDaysAction(
   input: LoadEarlierTimeDaysActionInput,
 ): Promise<LoadEarlierTimeDaysActionResult> {
@@ -448,7 +449,7 @@ export async function loadEarlierTimeDaysAction(
     const page = await getMemberTimeDays({
       memberId: member.id,
       endDay: addDays(parseDateOnly(parsed.data.before), -1),
-      weeks: 1,
+      weeks: parsed.data.weeks ?? 1,
     });
 
     return {

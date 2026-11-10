@@ -1,7 +1,3 @@
-"use client";
-
-import { useSyncExternalStore } from "react";
-
 /**
  * The motion vocabulary of `/time`, as TypeScript literals.
  *
@@ -129,47 +125,6 @@ export function rowEnterTransition(index: number) {
   };
 }
 
-/**
- * Every move the view can make, which is the `custom` value the view's `AnimatePresence`
- * hands its variants (§6). One presence, one key, one variant set that switches on this.
- *
- * - `step` and `jump` slide along the time axis, direction-aware: next comes from the right.
- * - `zoom` scales: in from 0.96 (closer), out from 1.04 (farther). The shared `layoutId`s tell the
- *   eye what stayed the same; the scale direction tells it which way it went.
- * - `lens` crossfades the bodies under headers that do not move.
- */
-export type TimeMove =
-  | { kind: "step" | "jump"; direction: 1 | -1 }
-  | { kind: "zoom"; direction: "in" | "out" }
-  | { kind: "lens" };
-
-export const viewVariants = {
-  enter: (move: TimeMove | undefined) => {
-    if (!move) return { opacity: 0 };
-    if (move.kind === "zoom") {
-      return {
-        opacity: 0,
-        scale: move.direction === "in" ? SCALE_ZOOM_IN : SCALE_ZOOM_OUT,
-      };
-    }
-    if (move.kind === "lens") return { opacity: 0, y: 4 };
-    return { opacity: 0, x: move.direction * DISTANCE_STEP };
-  },
-  center: (move: TimeMove | undefined) => ({
-    opacity: 1,
-    x: 0,
-    y: 0,
-    scale: 1,
-    transition: move?.kind === "zoom" ? levelTransition : stepTransition,
-  }),
-  exit: (move: TimeMove | undefined) => {
-    if (move?.kind === "step" || move?.kind === "jump") {
-      return { opacity: 0, x: move.direction * -DISTANCE_STEP, transition: exitTransition };
-    }
-    return { opacity: 0, transition: exitTransition };
-  },
-} as const;
-
 /** The period label's own slide on a step, 8px instead of 24. */
 export const labelVariants = {
   enter: (direction: 1 | -1 | 0 | undefined) => ({
@@ -200,70 +155,14 @@ export const settleVariants = {
 } as const;
 
 /**
- * The shared-identity scheme: one `layoutId` per conceptual object, so the same thing seen at two
- * scopes morphs rather than swapping.
- *
- * A `layoutId` must name at most one mounted element at a time, which is the constraint that
- * decides where each of these may be used:
- *
- * - {@link dayLayoutId} belongs to the scope's own representation of a day: the Week column header
- *   (both lenses share the same header component, so a re-lens does not move it), the Day scope's
- *   ribbon chip, and the Month scope's heat cell. The three are never mounted together — the ribbon
- *   replaces the headers when Week becomes Day, the heat navigator replaces both at Month — which is
- *   exactly what lets a header shrink into its chip and a cell grow into it (§7.2).
- * - {@link entryLayoutId} belongs to an entry seen at one scope at a time — the Day row, the Week
- *   card. Only the selected day's entries carry it, because only they exist at both scopes; a card
- *   in Thursday's column has nothing in the Day scope to morph into and would just cost a measure
- *   pass.
- * - {@link projectLayoutId} belongs to a project row in the Month bands, and **only** there. A
- *   project appears on many cards at the finer scopes, so it cannot name one element there.
- * - {@link TIMER_LAYOUT_ID} is the toolbar's timer control: the ghost button and the live pill are
- *   the same slot, so starting a timer morphs one into the other (§5.9).
+ * Stable ids for a day and for a Month project row. Kept as `layoutId`s from the old level morph;
+ * `/time` now loads `domAnimation`, which has no layout projection, so they only key elements.
  */
 export function dayLayoutId(isoDate: string): string {
   return `day-${isoDate}`;
 }
 
-/** See {@link dayLayoutId} for where this may and may not be used. */
-export function entryLayoutId(entryId: string): string {
-  return `entry-${entryId}`;
-}
-
-/** See {@link dayLayoutId} for where this may and may not be used — Month rows only. */
+/** See {@link dayLayoutId}. Month rows only. */
 export function projectLayoutId(projectId: string): string {
   return `project-${projectId}`;
-}
-
-export const TIMER_LAYOUT_ID = "timer";
-export const SCOPE_THUMB_LAYOUT_ID = "scope-thumb";
-export const LENS_THUMB_LAYOUT_ID = "lens-thumb";
-export const RIBBON_THUMB_LAYOUT_ID = "ribbon-thumb";
-
-/** The `LayoutGroup` every `/time` layoutId lives in, so a second segmented control elsewhere cannot collide. */
-export const TIME_LAYOUT_GROUP_ID = "time";
-
-/**
- * `false` on the render the browser paints first, `true` from the next one on.
- *
- * The `initial={false}` rule: a page that flies in on load reads as cheap and delays first
- * interaction. Passing this down as the `animateEntries` of a scope is what separates "the page
- * just opened" from "the scope just changed" — the second is worth animating, the first is not.
- * `AnimatePresence initial={false}` cannot do the job on its own here, because a nested
- * `AnimatePresence` supplies its own presence context and shadows the outer one.
- *
- * Read the way `use-time-view.ts` reads the remembered scope, and for the same reason: the server
- * snapshot is what the hydrating render uses, so the markup React sends and the markup it hydrates
- * agree, and the flip to `true` lands on the render after the first commit rather than inside it.
- */
-export function useAfterFirstPaint(): boolean {
-  return useSyncExternalStore(
-    subscribeToFirstPaint,
-    () => true,
-    () => false,
-  );
-}
-
-/** Nothing to subscribe to: the value flips once, when hydration hands over, and never again. */
-function subscribeToFirstPaint() {
-  return () => {};
 }

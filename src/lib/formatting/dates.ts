@@ -130,6 +130,24 @@ export function formatDateRangeLabel(start: string, end: string, locale: string)
   );
 }
 
+/** `Nov 9 – 15` (EN) or `nov. 9–15.` (HU): a range inside a known year, as a week heading names it. */
+export function formatShortDateRangeLabel(start: string, end: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, { month: "short", day: "numeric", timeZone: "UTC" })
+    .formatRange(dateOnlyToInstant(start), dateOnlyToInstant(end))
+    .replace(/[\u2009\u202f]/g, " ");
+}
+
+/** `Tue, Nov 10` (EN) or `nov. 10., kedd` (HU): a day as a day card names it. */
+export function formatDayCardLabel(isoDate: string, locale: string) {
+  return new Intl.DateTimeFormat(locale, {
+    // Hungarian short weekdays are one or two letters (`K`, `Sze`), too terse to read as a day.
+    weekday: locale.startsWith("hu") ? "long" : "short",
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(dateOnlyToInstant(isoDate));
+}
+
 /**
  * `Monday, Aug 31, 2026` (EN) or `2026. aug. 31., hétfő` (HU) — a day as the period header names
  * it: weekday first in English, last in Hungarian, the locale deciding.

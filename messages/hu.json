@@ -2174,17 +2174,11 @@
   },
   "TimeTracking": {
     "zoom": {
-      "dayStrip": "A hét napjai",
-      "selectDay": "{day} kiválasztása",
       "zoomToProject": "{project} · nagyítás"
     },
     "week": {
-      "columnEmpty": "Nincs rögzítve",
-      "expandDay": "{day} mutatása",
-      "addEntryOn": "Bejegyzés hozzáadása – {day}",
       "editEntryNamed": "{entry} szerkesztése",
       "deleteEntryNamed": "{entry} törlése",
-      "adminModified": "Adminisztrátor módosította",
       "capacity": "{logged} / {target}"
     },
     "labels": {
@@ -2199,7 +2193,6 @@
     },
     "actions": {
       "newEntry": "Új bejegyzés",
-      "duplicateLastWeek": "Előző hét másolása",
       "undo": "Visszavonás",
       "discard": "Eldobás",
       "restoreDraft": "Piszkozat visszaállítása",
@@ -2210,29 +2203,12 @@
       "close": "Bezárás",
       "cancel": "Mégse",
       "save": "Mentés",
-      "copyYesterdayInto": "Tegnapi másolása ide: {day}",
-      "more": "További műveletek"
+      "entryShort": "Bejegyzés"
     },
     "tooltips": {
       "copyPreviousDay": "Bejegyzések másolása a(z) {date} előtti napról.",
       "duplicatePreviousWeek": "Az előző hét bejegyzéseinek másolása erre a hétre.",
       "stopTimerFirst": "Új időmérő indítása előtt állítsd le a futó időmérőt."
-    },
-    "quickActionConfirm": {
-      "confirm": "Bejegyzések másolása",
-      "skipExisting": "A célcellákban lévő meglévő bejegyzések megmaradnak, és kimaradnak a másolásból.",
-      "copyPreviousDay": {
-        "title": "Tegnapi bejegyzések másolása?",
-        "description": "Bejegyzések másolása innen: {sourceDate}, ide: {targetDate}."
-      },
-      "duplicatePreviousWeek": {
-        "title": "Előző hét duplikálása?",
-        "description": "Bejegyzések másolása innen: {sourceWeekStart} - {sourceWeekEnd}, ide: {targetWeekStart} - {targetWeekEnd}."
-      }
-    },
-    "locked": {
-      "title": "Zárolt időszak.",
-      "description": "A hét néhány napja beküldött timesheethez tartozik, ezért csak olvasható."
     },
     "grid": {
       "projects": "Projektek",
@@ -2253,10 +2229,7 @@
     },
     "empty": {
       "title": "Nincs aktív hozzárendelt projekt",
-      "description": "Időt akkor tudsz rögzíteni, ha egy admin aktív projekthez rendel ezen a héten.",
-      "copyYesterday": "Tegnapi másolása",
-      "weekTitle": "Ezen a héten nincs rögzítve semmi",
-      "weekDescription": "Adj hozzá egy bejegyzést, vagy hozd át az előző hét bejegyzéseit."
+      "description": "Időt akkor tudsz rögzíteni, ha egy admin aktív projekthez rendel ezen a héten."
     },
     "draft": {
       "title": "Mentetlen időbejegyzés-piszkozat",
@@ -2265,22 +2238,11 @@
       "saved": "Piszkozat mentve",
       "notSaved": "A piszkozat nincs mentve"
     },
-    "day": {
-      "emptyTitle": "Nincs bejegyzés ezen a napon",
-      "emptyDescription": "Indíts időmérőt vagy adj hozzá bejegyzést a kiválasztott projekthez és naphoz.",
-      "target": "a {target} célból",
-      "split": "Projektenként",
-      "quickAdd": "Gyors hozzáadás",
-      "glance": "Röviden",
-      "noSplit": "Még nincs rögzítve semmi"
-    },
     "month": {
       "trackedHeading": "Sheet Happensben rögzítve",
       "emptyTitle": "Ebben a hónapban nincs mit zárni",
       "emptyDescription": "Ebben a hónapban nem rögzítettél időt, és nincs benne nyitott projekt, amelyre rögzíthetnél.",
-      "declaredHeading": "Havonta bevallott",
-      "declaredElsewhere": "A(z) {project} órái havonta kerülnek bevallásra — <link>nézd meg a Hónap nézetben</link>",
-      "declaredElsewhereMany": "{count, plural, other {# projekt}} órái havonta kerülnek bevallásra — <link>nézd meg a Hónap nézetben</link>"
+      "declaredHeading": "Havonta bevallott"
     },
     "timer": {
       "trackedWithTimer": "Időmérővel rögzítve",
@@ -2304,8 +2266,6 @@
       "requiredHint": "A projekt és a leírás kötelező. A jövőbeli dátumok és hosszú napok figyelmeztetéssel menthetők."
     },
     "adminModification": {
-      "weekTitle": "Egy adminisztrátor {count} bejegyzést módosított ezen a héten.",
-      "weekDescription": "Nyisd meg az érintett bejegyzést a javítás részleteiért.",
       "adminFallback": "Adminisztrátor",
       "changedBy": "Módosította: {name}, {date}.",
       "reason": "Indok: {reason}"
@@ -2329,14 +2289,11 @@
       "descriptionNeededSentence": "Leírás szükséges.",
       "descriptionSaved": "Leírás mentve",
       "futureDay": "Jövőbeli nap.",
-      "futureDate": "Jövőbeli dátum",
-      "futureDateAllowed": "Ez jövőbeli dátum. A bejegyzés engedélyezett, de jelölve marad.",
       "dailyTotalOver8": "A napi összesen több mint 8 óra.",
       "dailyTotalExact": "Ez {hours} egy nap alatt.",
       "dailyTotalOver24Blocked": "A napi összesen nem lehet több 24 óránál.",
       "dailyTotalOver24Projected": "A napi összesen nem lehet több 24 óránál, az összesen {hours} lenne.",
       "dayHasOverlaps": "A napon átfedő bejegyzések vannak.",
-      "dayOver8": "A kiválasztott napon több mint 8 óra van rögzítve.",
       "dayOver8Projected": "A kiválasztott napon több mint 8 óra van rögzítve, az összesen {hours}.",
       "longContinuousSession": "Hosszú egybefüggő munka",
       "overlapsAnotherEntry": "Átfed egy másik bejegyzéssel",
@@ -2386,41 +2343,20 @@
       "externalSystem": "külső rendszer",
       "sanityWarning": "Ez több mint {hours}, ennyi óra van az egész hónapban. Mentettük — ellenőrizd a számot."
     },
-    "view": {
-      "label": "Nézet",
-      "day": "Nap",
-      "week": "Hét",
-      "month": "Hónap",
-      "zoomIn": "Közelítés: {scope}",
-      "zoomOut": "Távolítás: {scope}",
-      "zoomInMost": "Ez a legközelebbi nézet",
-      "zoomOutMost": "Ez a legtágabb nézet",
-      "shortcut": "Billentyű: {key}",
-      "monthBadge": "A bevallott órák a Hónap nézetben vannak",
-      "announce": "{scope} · {period} · {total}"
-    },
-    "lens": {
-      "label": "Heti elrendezés",
-      "agenda": "Napló",
-      "grid": "Rács"
-    },
     "period": {
       "week": "{week}. hét · {range}",
       "today": "Ma",
       "previous": "Előző {unit}",
       "next": "Következő {unit}",
-      "unitDay": "nap",
       "unitWeek": "hét",
       "unitMonth": "hónap",
       "pick": "Ugrás egy hónapra",
-      "atToday": "A mai napon vagy"
+      "atToday": "A mai napon vagy",
+      "unitPage": "2 hét"
     },
     "total": {
-      "today": "ma",
       "week": "ezen a héten",
-      "month": "ebben a hónapban",
-      "overTarget": "több mint {target}",
-      "onTarget": "cél teljesítve"
+      "month": "ebben a hónapban"
     },
     "header": {
       "open": "{date} megnyitása",
@@ -2435,7 +2371,6 @@
       "cellDetail": "{hours} · {count} bejegyzés",
       "empty": "{date}, nincs rögzítve",
       "future": "{date}, jövőbeli",
-      "workdays": "{logged} / {workdays} munkanap",
       "weekRow": "{week}. hét",
       "openWeek": "{week}. hét megnyitása",
       "locked": "Ezt a hónapot beküldött munkaidő-nyilvántartás zárolja",
@@ -2443,20 +2378,6 @@
       "legendEmpty": "Nincs rögzítve",
       "legendFuture": "Jövőbeli",
       "outside": "{date}, nem ebben a hónapban"
-    },
-    "composer": {
-      "title": "Hozzáadás: {date}",
-      "description": "Min dolgoztál?",
-      "duration": "Időtartam",
-      "durationPlaceholder": "2h30",
-      "project": "Projekt",
-      "more": "További beállítások",
-      "interval": "Inkább időszak",
-      "add": "Hozzáadás",
-      "submitHint": "Az Enter hozzáadja",
-      "descriptionRequired": "Írd le, min dolgoztál.",
-      "noProject": "Először válassz projektet.",
-      "close": "Bezárás"
     },
     "suggestions": {
       "label": "Legutóbbi leírások",
@@ -2470,7 +2391,6 @@
     "card": {
       "continue": "{description} folytatása",
       "more": "További műveletek: {description}",
-      "timer": "Időmérővel rögzítve",
       "locked": "Beküldött munkaidő-nyilvántartás zárolja",
       "live": "Most fut"
     },
@@ -2482,31 +2402,21 @@
     "shortcuts": {
       "title": "Billentyűparancsok",
       "description": "Ezen az oldalon minden lépésnek van billentyűje. Gépelés közben egyik sem aktív.",
-      "open": "Billentyűparancsok",
       "keyHeader": "Billentyű",
       "actionHeader": "Művelet",
       "groupView": "Nézet",
       "groupMove": "Mozgás",
       "groupAdd": "Hozzáadás",
       "groupTimer": "Időmérő",
-      "day": "Nap",
-      "week": "Hét",
-      "month": "Hónap",
-      "zoomOut": "Távolítás",
-      "zoomIn": "Közelítés",
-      "grid": "A hét rács elrendezése",
       "previous": "Előző {unit}",
       "next": "Következő {unit}",
       "today": "Ma",
-      "escape": "Egy lépés távolítás",
-      "newEntry": "Új bejegyzés a kiválasztott napra",
       "timer": "Időmérő indítása vagy leállítása",
       "help": "Ez a lap",
-      "palette": "Parancspaletta"
-    },
-    "hint": {
-      "firstVisit": "A ? gomb mutatja a parancsokat, egy napra kattintva megnyílik",
-      "dismiss": "Értem"
+      "palette": "Parancspaletta",
+      "days": "Napok",
+      "weeks": "Hetek",
+      "months": "Hónapok"
     },
     "commands": {
       "group": "Időkövetés",
@@ -2516,21 +2426,45 @@
       "empty": "Nincs találat",
       "trigger": "Parancspaletta megnyitása",
       "goToToday": "Ugrás a mai napra",
-      "viewDay": "Nézet: Nap",
-      "viewWeek": "Nézet: Hét",
-      "viewMonth": "Nézet: Hónap",
-      "lensAgenda": "Heti elrendezés: Napló",
-      "lensGrid": "Heti elrendezés: Rács",
       "newEntry": "Új bejegyzés",
       "startTimer": "Időmérő indítása",
       "stopTimer": "Időmérő leállítása",
-      "duplicateLastWeek": "Előző hét másolása",
-      "copyYesterday": "Tegnapi másolása",
-      "shortcuts": "Billentyűparancsok"
+      "shortcuts": "Billentyűparancsok",
+      "viewDays": "Nézet: Napok",
+      "viewWeeks": "Nézet: Hetek",
+      "viewMonths": "Nézet: Hónapok"
     },
-    "mobile": {
-      "addEntry": "Bejegyzés hozzáadása",
-      "swipeHint": "Húzd oldalra az időszak váltásához"
+    "tabs": {
+      "label": "Nézet",
+      "days": "Napok",
+      "weeks": "Hetek",
+      "months": "Hónapok",
+      "zoomHint": "távolítás"
+    },
+    "days": {
+      "weekHeading": "{week}. hét · {range}",
+      "nothingLogged": "Nincs rögzítve",
+      "nothingLoggedWorkday": "Munkanapon nincs semmi rögzítve",
+      "nothingLoggedToday": "Ma még nincs rögzítve semmi",
+      "onLeave": "Szabadságon",
+      "addEntry": "Bejegyzés hozzáadása: {day}",
+      "progress": "{logged} / {target}",
+      "now": "most",
+      "loadEarlier": "Görgess a korábbi hetekért",
+      "loadingEarlier": "Korábbi napok betöltése…",
+      "loadFailed": "A korábbi heteket nem sikerült betölteni.",
+      "empty": "Még nincs mit mutatni.",
+      "declaredElsewhere": "A(z) {project} órái havonta kerülnek bevallásra — <link>nézd meg a Hónapok nézetben</link>",
+      "declaredElsewhereMany": "{count, plural, other {# projekt}} órái havonta kerülnek bevallásra — <link>nézd meg a Hónapok nézetben</link>",
+      "periodTotal": "{count} hét"
+    },
+    "timerComposer": {
+      "description": "Min dolgozol?",
+      "project": "Projekt: {project}",
+      "recent": "Legutóbbi",
+      "allProjects": "Minden projekt",
+      "start": "Időmérő indítása",
+      "descriptionRequired": "Írd le, min dolgozol."
     }
   },
   "TimeTrackingActions": {
