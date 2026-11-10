@@ -34,6 +34,8 @@ export const authUrls = {
    * echo back character for character — no trailing slash.
    */
   mcpResource: `${authOrigin}${mcpBasePath}`,
+  /** The REST API base URL (`docs/rest-api.md`). */
+  restApi: `${authOrigin}/api/v1`,
 } as const;
 
 export function getAuthOrigin() {
