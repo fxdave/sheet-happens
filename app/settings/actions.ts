@@ -12,6 +12,15 @@ import {
 } from "@/src/server/auth/app-access";
 import { clearSecondFactorCookie } from "@/src/server/auth/second-factor";
 import { AuthenticationError, AuthorizationError } from "@/src/server/auth/session";
+import {
+  API_TOKEN_EXPIRY_OPTIONS,
+  ApiTokenError,
+  createApiToken,
+  isAdminApiTokenScope,
+  isApiTokenScope,
+  revokeApiToken,
+  type ApiTokenErrorCode,
+} from "@/src/server/api-tokens";
 import { prisma } from "@/src/server/db/client";
 import { disconnectMcpConnection } from "@/src/server/mcp/connections";
 import {
@@ -27,11 +36,14 @@ import {
   updateNotificationConfiguration,
 } from "@/src/server/notifications";
 import type {
+  CreateApiTokenActionInput,
+  CreateApiTokenActionState,
   DeletePasskeyActionInput,
   DisconnectConnectedAppActionInput,
   MemberPreferenceActionState,
   NotificationSettingsActionState,
   RenamePasskeyActionInput,
+  RevokeApiTokenActionInput,
   SecuritySettingsActionState,
 } from "./actions.types";
 
@@ -553,6 +565,119 @@ export async function disconnectConnectedAppAction(
       status: "error",
       message: t("errors.connectedAppDisconnectFailed"),
     };
+  }
+}
+
+const createApiTokenSchema = z.object({
+  name: z.string().max(200),
+  scopes: z.array(z.string()).max(10),
+  expiry: z.enum(API_TOKEN_EXPIRY_OPTIONS),
+});
+
+const apiTokenErrorKeys: Record<ApiTokenErrorCode, string> = {
+  NAME_REQUIRED: "errors.apiTokenNameRequired",
+  NAME_TOO_LONG: "errors.apiTokenNameTooLong",
+  SCOPES_REQUIRED: "errors.apiTokenScopesRequired",
+  SCOPE_INVALID: "errors.apiTokenScopeInvalid",
+  ADMIN_SCOPE_FORBIDDEN: "errors.apiTokenAdminScopeForbidden",
+  EXPIRY_INVALID: "errors.apiTokenExpiryInvalid",
+  TOO_MANY_TOKENS: "errors.apiTokenTooMany",
+  TOKEN_NOT_FOUND: "errors.apiTokenNotFound",
+  MEMBER_NOT_FOUND: "errors.memberNotFound",
+};
+
+/** Creates a personal access token; the plaintext is in the result and nowhere else. */
+export async function createApiTokenAction(
+  input: CreateApiTokenActionInput,
+): Promise<CreateApiTokenActionState> {
+  const t = await getTranslations("SettingsActions");
+  const parsed = createApiTokenSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { status: "error", message: t("errors.apiTokenInvalidInput") };
+  }
+
+  try {
+    const { member } = await requireActiveAppMemberForAction();
+    const wantsAdminScope = parsed.data.scopes.some(
+      (scope) => isApiTokenScope(scope) && isAdminApiTokenScope(scope),
+    );
+
+    // Admin scopes are a back-office power, so they need the same TOTP gate as admin actions.
+    if (wantsAdminScope && member.role === "ADMIN") {
+      try {
+        await requireAdminAppMemberForAction();
+      } catch (error) {
+        if (error instanceof AuthorizationError) {
+          return { status: "error", message: t("errors.apiTokenAdminScopeRequiresTotp") };
+        }
+
+        throw error;
+      }
+    }
+
+    const created = await createApiToken({
+      memberId: member.id,
+      name: parsed.data.name,
+      scopes: parsed.data.scopes,
+      expiry: parsed.data.expiry,
+      requestMetadata: getRequestMetadata(await headers()),
+    });
+
+    revalidatePath("/settings");
+
+    return { status: "success", message: t("success.apiTokenCreated"), token: created.token };
+  } catch (error) {
+    if (error instanceof ApiTokenError) {
+      return { status: "error", message: t(apiTokenErrorKeys[error.code]) };
+    }
+
+    if (error instanceof AuthenticationError || error instanceof AuthorizationError) {
+      return { status: "error", message: translateSettingsActionMessage(error.message, t) };
+    }
+
+    console.error("[settings] api token creation failed", error);
+
+    return { status: "error", message: t("errors.apiTokenCreateFailed") };
+  }
+}
+
+const revokeApiTokenSchema = z.object({ tokenId: z.string().uuid() });
+
+export async function revokeApiTokenAction(
+  input: RevokeApiTokenActionInput,
+): Promise<SecuritySettingsActionState> {
+  const t = await getTranslations("SettingsActions");
+  const parsed = revokeApiTokenSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { status: "error", message: t("errors.apiTokenNotFound") };
+  }
+
+  try {
+    const { member } = await requireActiveAppMemberForAction();
+
+    await revokeApiToken({
+      memberId: member.id,
+      tokenId: parsed.data.tokenId,
+      requestMetadata: getRequestMetadata(await headers()),
+    });
+
+    revalidatePath("/settings");
+
+    return { status: "success", message: t("success.apiTokenRevoked") };
+  } catch (error) {
+    if (error instanceof ApiTokenError) {
+      return { status: "error", message: t(apiTokenErrorKeys[error.code]) };
+    }
+
+    if (error instanceof AuthenticationError || error instanceof AuthorizationError) {
+      return { status: "error", message: translateSettingsActionMessage(error.message, t) };
+    }
+
+    console.error("[settings] api token revocation failed", error);
+
+    return { status: "error", message: t("errors.apiTokenRevokeFailed") };
   }
 }
 

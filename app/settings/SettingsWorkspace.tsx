@@ -1,6 +1,14 @@
 "use client";
 
-import { Bell, LockKeyhole, Plug, ShieldCheck, SlidersHorizontal, User } from "lucide-react";
+import {
+  Bell,
+  KeyRound,
+  LockKeyhole,
+  Plug,
+  ShieldCheck,
+  SlidersHorizontal,
+  User,
+} from "lucide-react";
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 
@@ -16,12 +24,14 @@ import {
 import { cn } from "@/src/lib/utils";
 import type { DurationDisplayFormat } from "@/src/lib/formatting";
 import type { NotificationConfigurationValue } from "@/src/server/notifications";
+import { ApiTokensClient, type ApiTokensClientProps } from "./ApiTokensClient";
 import { ConnectedAppsClient, type ConnectedAppView } from "./ConnectedAppsClient";
 import { NotificationSettingsClient } from "./NotificationSettingsClient";
 import { ProfilePreferencesClient } from "./ProfilePreferencesClient";
 import { SecuritySettingsClient, type SecuritySettingsClientProps } from "./SecuritySettingsClient";
 
-type SettingsSection = "profile" | "security" | "connectedApps" | "preferences" | "notifications";
+type SettingsSection =
+  "profile" | "security" | "connectedApps" | "apiTokens" | "preferences" | "notifications";
 
 export type SettingsWorkspaceProps = {
   defaultSection?: SettingsSection;
@@ -37,6 +47,7 @@ export type SettingsWorkspaceProps = {
   timezoneOptions: readonly { value: string; label: string }[];
   security: SecuritySettingsClientProps;
   connectedApps: readonly ConnectedAppView[];
+  apiTokens: ApiTokensClientProps;
   notificationConfiguration?: NotificationConfigurationValue;
 };
 
@@ -46,6 +57,7 @@ export function SettingsWorkspace({
   timezoneOptions,
   security,
   connectedApps,
+  apiTokens,
   notificationConfiguration,
 }: SettingsWorkspaceProps) {
   const t = useTranslations("Settings");
@@ -54,6 +66,7 @@ export function SettingsWorkspace({
     { id: "profile" as const, icon: User, label: t("sections.profile") },
     { id: "security" as const, icon: ShieldCheck, label: t("sections.security") },
     { id: "connectedApps" as const, icon: Plug, label: t("sections.connectedApps") },
+    { id: "apiTokens" as const, icon: KeyRound, label: t("sections.apiTokens") },
     { id: "preferences" as const, icon: SlidersHorizontal, label: t("sections.preferences") },
     ...(notificationConfiguration
       ? [{ id: "notifications" as const, icon: Bell, label: t("sections.notifications") }]
@@ -122,6 +135,15 @@ export function SettingsWorkspace({
           compact
         >
           <ConnectedAppsClient connections={connectedApps} />
+        </SettingsPanel>
+        <SettingsPanel
+          id="apiTokens"
+          active={activeSection === "apiTokens"}
+          title={t("apiTokens.title")}
+          description={t("apiTokens.description")}
+          compact
+        >
+          <ApiTokensClient {...apiTokens} />
         </SettingsPanel>
         <SettingsPanel
           id="preferences"

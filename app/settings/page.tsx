@@ -23,6 +23,7 @@ import {
   requireSecuritySettingsAppMember,
   sanitizeCallbackURL,
 } from "@/src/server/auth/app-access";
+import { listApiTokens } from "@/src/server/api-tokens";
 import { getGoogleAuthSettings } from "@/src/server/auth/sign-in-methods";
 import { prisma } from "@/src/server/db/client";
 import { listMcpConnections, type McpConnection } from "@/src/server/mcp/connections";
@@ -54,6 +55,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
   const { member, authUser } = access;
   const securityState = await getSecurityState(authUser.id);
   const connectedApps = await listMcpConnections({ authUserId: authUser.id });
+  const apiTokens = await listApiTokens({ memberId: member.id });
   const googleAuthSettings = getGoogleAuthSettings();
   const notificationConfiguration =
     member.role === "ADMIN" ? await getNotificationConfiguration() : undefined;
@@ -72,6 +74,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
     : requestedSection === "security" ||
         requestedSection === "preferences" ||
         requestedSection === "connectedApps" ||
+        requestedSection === "apiTokens" ||
         (requestedSection === "notifications" && member.role === "ADMIN")
       ? requestedSection
       : "profile";
@@ -144,6 +147,7 @@ export default async function SettingsPage({ searchParams }: SettingsPageProps) 
             },
           }}
           connectedApps={toConnectedAppViews(connectedApps)}
+          apiTokens={{ tokens: apiTokens, canGrantAdminScopes: member.role === "ADMIN" }}
           notificationConfiguration={notificationConfiguration}
         />
       </section>

@@ -1,4 +1,5 @@
 import { prisma } from "@/src/server/db/client";
+import { revokeAllApiTokensForMember } from "@/src/server/api-tokens/tokens";
 import { revokeAllMcpAccessForUser } from "@/src/server/mcp/connections";
 import { sendInvitationEmail } from "@/src/server/auth/auth-emails";
 import {
@@ -137,6 +138,13 @@ type MemberLifecycleTransaction = {
   };
   oauthConsent: {
     deleteMany(args: { where: { userId: string } }): Promise<{ count: number }>;
+  };
+  /** Personal access tokens, revoked in the same transaction for the same reason. */
+  apiToken: {
+    updateMany(args: {
+      where: { memberId: string; revokedAt: null };
+      data: { revokedAt: Date };
+    }): Promise<{ count: number }>;
   };
   twoFactor: {
     deleteMany(args: { where: { userId: string } }): Promise<{ count: number }>;
@@ -369,6 +377,13 @@ export async function deactivateMember(
       reason: "member_deactivated",
     });
 
+    await revokeApiTokensForMember(tx, {
+      member,
+      actorMemberId: input.actorMemberId,
+      reason: "member_deactivated",
+      now,
+    });
+
     return {
       memberId: member.id,
       revokedSessionCount,
@@ -475,6 +490,13 @@ export async function softDeleteMember(
       member,
       actorMemberId: input.actorMemberId,
       reason: "member_deleted",
+    });
+
+    await revokeApiTokensForMember(tx, {
+      member,
+      actorMemberId: input.actorMemberId,
+      reason: "member_deleted",
+      now,
     });
 
     return {
@@ -864,6 +886,36 @@ async function revokeMcpGrantsForMember(
   });
 
   return revoked.removedConsents;
+}
+
+/** `authenticateApiToken` already refuses a non-active owner; this stops reactivation reviving them. */
+async function revokeApiTokensForMember(
+  tx: MemberLifecycleTransaction,
+  input: {
+    member: { id: string };
+    actorMemberId: string;
+    reason: SessionRevocationReason;
+    now: Date;
+  },
+) {
+  const revoked = await revokeAllApiTokensForMember(
+    { memberId: input.member.id, now: input.now },
+    { db: tx },
+  );
+
+  if (revoked === 0) return 0;
+
+  await tx.auditLog.create({
+    data: {
+      actorMemberId: input.actorMemberId,
+      action: "member.api_tokens_revoked",
+      targetType: "member",
+      targetId: input.member.id,
+      after: { reason: input.reason, revokedApiTokens: revoked },
+    },
+  });
+
+  return revoked;
 }
 
 async function revokeAuthSessionsForMember(

@@ -2033,7 +2033,12 @@
         "leave__hr_unprocessed": "Processed mark removed",
         "leave__attachment_uploaded": "Sick note uploaded",
         "leave__attachment_removed": "Sick note removed",
-        "leave__attachment_read": "Sick note opened"
+        "leave__attachment_read": "Sick note opened",
+        "api_token__created": "API token created",
+        "api_token__revoked": "API token revoked",
+        "api_token__used": "API token used",
+        "api_token__cross_member_read": "Members' hours read via API",
+        "member__api_tokens_revoked": "API tokens revoked"
       },
       "targets": {
         "assignment_rate_period": "Project rate",
@@ -2055,7 +2060,8 @@
         "time_entries": "Time entries",
         "time_entry": "Time entry",
         "timesheet": "Timesheet",
-        "leave": "Leave"
+        "leave": "Leave",
+        "api_token": "API token"
       }
     },
     "client": {
@@ -2694,6 +2700,7 @@
       "profile": "Profile",
       "security": "Security and sign-in",
       "connectedApps": "Connected apps",
+      "apiTokens": "API tokens",
       "preferences": "Preferences",
       "notifications": "Notifications"
     },
@@ -2731,6 +2738,77 @@
         "title": "Disconnect this app?",
         "body": "{app} loses access immediately, including any conversation that is already open. Your time entries stay exactly as they are, and you can connect the app again whenever you want.",
         "confirm": "Disconnect",
+        "cancel": "Cancel"
+      }
+    },
+    "apiTokens": {
+      "title": "API tokens",
+      "description": "Personal access tokens let your own scripts and tools call the Sheet Happens REST API as you.",
+      "intro": "A token acts with your rights and only the scopes you give it. Treat it like a password.",
+      "create": "Create token",
+      "listLabel": "Your API tokens",
+      "scopesLabel": "Scopes",
+      "createdLabel": "Created",
+      "lastUsedLabel": "Last used",
+      "expiresLabel": "Expires",
+      "never": "Never",
+      "noExpiry": "No expiry",
+      "adminOnly": "Admin",
+      "revoke": "Revoke",
+      "revokeToken": "Revoke {name}",
+      "note": "Revoking a token stops it immediately. Tokens also stop working if your account is deactivated, and admin scopes stop working if you are no longer an admin.",
+      "status": {
+        "expired": "Expired"
+      },
+      "empty": {
+        "title": "No API tokens",
+        "body": "Create a token to read your hours or submit your timesheet from a script. The full plaintext is shown only once, right after you create it."
+      },
+      "scopes": {
+        "hours_read": {
+          "title": "Read my hours",
+          "description": "List your own time entries and totals for a date range."
+        },
+        "timesheets_write": {
+          "title": "Submit my timesheet",
+          "description": "Submit your monthly contractor timesheet and upload its invoice PDF."
+        },
+        "hours_read_all": {
+          "title": "Read everyone's hours",
+          "description": "List the time entries of any or all members. Works only while you are an admin."
+        }
+      },
+      "expiry": {
+        "30": "30 days",
+        "90": "90 days",
+        "365": "1 year",
+        "never": "No expiry"
+      },
+      "createDialog": {
+        "title": "Create API token",
+        "body": "Name the token after where you will use it, so you can recognise it later.",
+        "nameLabel": "Name",
+        "nameHint": "For example: Monthly invoice script",
+        "scopesLabel": "What may this token do?",
+        "expiryLabel": "Expires after",
+        "submit": "Create token",
+        "cancel": "Cancel",
+        "close": "Close"
+      },
+      "createdDialog": {
+        "title": "Copy your new token",
+        "body": "Use it in the Authorization header: Bearer followed by the token.",
+        "onceWarning": "You won't see this token again. Copy it now and store it somewhere safe; if you lose it, revoke it and create a new one.",
+        "tokenLabel": "New API token",
+        "copy": "Copy token",
+        "copied": "Token copied to the clipboard.",
+        "copyFailed": "Copying failed. Select the token and copy it by hand.",
+        "done": "Done"
+      },
+      "revokeDialog": {
+        "title": "Revoke this token?",
+        "body": "{name} stops working immediately, and any script using it will get an error. This cannot be undone.",
+        "confirm": "Revoke",
         "cancel": "Cancel"
       }
     },
@@ -3167,7 +3245,9 @@
       "totpDisabledAudited": "Authenticator app disablement audited.",
       "backupCodesRegeneratedAudited": "Backup-code regeneration audited.",
       "connectedAppDisconnected": "App disconnected.",
-      "notificationSettingsUpdated": "Notification settings updated."
+      "notificationSettingsUpdated": "Notification settings updated.",
+      "apiTokenCreated": "API token created.",
+      "apiTokenRevoked": "API token revoked."
     },
     "errors": {
       "avatarRequired": "Choose a profile image.",
@@ -3192,7 +3272,19 @@
       "connectedAppDisconnectFailed": "The app could not be disconnected.",
       "noAuthAccount": "No auth account is linked to this member.",
       "notificationSettingsUpdateFailed": "Notification settings could not be updated.",
-      "notificationSettingsInvalid": "Check the notification schedule and delivery settings."
+      "notificationSettingsInvalid": "Check the notification schedule and delivery settings.",
+      "apiTokenInvalidInput": "Check the token details and try again.",
+      "apiTokenNameRequired": "Give the token a name.",
+      "apiTokenNameTooLong": "The name can be at most 80 characters.",
+      "apiTokenScopesRequired": "Choose at least one scope.",
+      "apiTokenScopeInvalid": "One of the chosen scopes is not available.",
+      "apiTokenAdminScopeForbidden": "Only admins can grant that scope.",
+      "apiTokenAdminScopeRequiresTotp": "Set up an authenticator app before creating a token with admin scopes.",
+      "apiTokenExpiryInvalid": "Choose a valid expiry.",
+      "apiTokenTooMany": "You have reached the limit of 20 active tokens. Revoke one you no longer use.",
+      "apiTokenNotFound": "This token no longer exists.",
+      "apiTokenCreateFailed": "The token could not be created.",
+      "apiTokenRevokeFailed": "The token could not be revoked."
     }
   },
   "Payslips": {

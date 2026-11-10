@@ -52,6 +52,7 @@ function createLifecycleDb(
     revokedAccessTokenCount?: number;
     revokedRefreshTokenCount?: number;
     removedConsentCount?: number;
+    revokedApiTokenCount?: number;
   } = {},
 ) {
   const tx = {
@@ -83,6 +84,9 @@ function createLifecycleDb(
     },
     oauthConsent: {
       deleteMany: vi.fn().mockResolvedValue({ count: overrides.removedConsentCount ?? 1 }),
+    },
+    apiToken: {
+      updateMany: vi.fn().mockResolvedValue({ count: overrides.revokedApiTokenCount ?? 0 }),
     },
     user: {
       findUnique: vi.fn().mockResolvedValue(

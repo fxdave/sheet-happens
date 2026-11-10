@@ -2033,7 +2033,12 @@
         "leave__hr_unprocessed": "Feldolgozás visszavonva",
         "leave__attachment_uploaded": "Igazolás feltöltve",
         "leave__attachment_removed": "Igazolás törölve",
-        "leave__attachment_read": "Igazolás megnyitva"
+        "leave__attachment_read": "Igazolás megnyitva",
+        "api_token__created": "API-token létrehozva",
+        "api_token__revoked": "API-token visszavonva",
+        "api_token__used": "API-token használatban",
+        "api_token__cross_member_read": "Tagok óráinak olvasása API-n",
+        "member__api_tokens_revoked": "API-tokenek visszavonva"
       },
       "targets": {
         "assignment_rate_period": "Projektóradíj",
@@ -2055,7 +2060,8 @@
         "time_entries": "Időbejegyzések",
         "time_entry": "Időbejegyzés",
         "timesheet": "Timesheet",
-        "leave": "Szabadság"
+        "leave": "Szabadság",
+        "api_token": "API-token"
       }
     },
     "client": {
@@ -2694,6 +2700,7 @@
       "profile": "Profil",
       "security": "Biztonság és belépés",
       "connectedApps": "Összekötött alkalmazások",
+      "apiTokens": "API-tokenek",
       "preferences": "Beállítások",
       "notifications": "Értesítések"
     },
@@ -2731,6 +2738,77 @@
         "title": "Leválasztod ezt az alkalmazást?",
         "body": "A(z) {app} azonnal elveszíti a hozzáférést, a már megnyitott beszélgetésekben is. Az időbejegyzéseid változatlanul megmaradnak, és az alkalmazást bármikor újra összekötheted.",
         "confirm": "Leválasztás",
+        "cancel": "Mégse"
+      }
+    },
+    "apiTokens": {
+      "title": "API-tokenek",
+      "description": "A személyes hozzáférési tokenekkel a saját szkriptjeid és eszközeid a nevedben hívhatják a Sheet Happens REST API-t.",
+      "intro": "A token a te jogaiddal, és csak a neki adott jogosultságokkal jár el. Kezeld úgy, mint egy jelszót.",
+      "create": "Token létrehozása",
+      "listLabel": "API-tokenjeid",
+      "scopesLabel": "Jogosultságok",
+      "createdLabel": "Létrehozva",
+      "lastUsedLabel": "Utoljára használva",
+      "expiresLabel": "Lejár",
+      "never": "Soha",
+      "noExpiry": "Nem jár le",
+      "adminOnly": "Admin",
+      "revoke": "Visszavonás",
+      "revokeToken": "Visszavonás: {name}",
+      "note": "A visszavont token azonnal leáll. A tokenek akkor is leállnak, ha a fiókodat inaktiválják, az admin jogosultságok pedig akkor, ha már nem vagy admin.",
+      "status": {
+        "expired": "Lejárt"
+      },
+      "empty": {
+        "title": "Nincs API-token",
+        "body": "Hozz létre egy tokent, hogy szkriptből olvashasd a munkaóráidat vagy beküldhesd a havi kimutatásodat. A teljes token csak egyszer, közvetlenül a létrehozás után látható."
+      },
+      "scopes": {
+        "hours_read": {
+          "title": "Saját órák olvasása",
+          "description": "A saját időbejegyzéseid és összesítéseid listázása egy időszakra."
+        },
+        "timesheets_write": {
+          "title": "Kimutatás beküldése",
+          "description": "A havi vállalkozói kimutatásod beküldése és a számla PDF feltöltése."
+        },
+        "hours_read_all": {
+          "title": "Mindenki óráinak olvasása",
+          "description": "Bármely vagy az összes tag időbejegyzéseinek listázása. Csak addig működik, amíg admin vagy."
+        }
+      },
+      "expiry": {
+        "30": "30 nap",
+        "90": "90 nap",
+        "365": "1 év",
+        "never": "Nem jár le"
+      },
+      "createDialog": {
+        "title": "API-token létrehozása",
+        "body": "Nevezd el a tokent arról, ahol használni fogod, hogy később felismerd.",
+        "nameLabel": "Név",
+        "nameHint": "Például: Havi számlázó szkript",
+        "scopesLabel": "Mit tehet ez a token?",
+        "expiryLabel": "Lejárat",
+        "submit": "Token létrehozása",
+        "cancel": "Mégse",
+        "close": "Bezárás"
+      },
+      "createdDialog": {
+        "title": "Másold ki az új tokent",
+        "body": "Az Authorization fejlécben használd: Bearer, majd a token.",
+        "onceWarning": "Ezt a tokent többé nem fogod látni. Másold ki most, és tárold biztonságos helyen; ha elveszíted, vond vissza, és hozz létre újat.",
+        "tokenLabel": "Új API-token",
+        "copy": "Token másolása",
+        "copied": "A token a vágólapra került.",
+        "copyFailed": "A másolás nem sikerült. Jelöld ki a tokent, és másold kézzel.",
+        "done": "Kész"
+      },
+      "revokeDialog": {
+        "title": "Visszavonod ezt a tokent?",
+        "body": "A(z) {name} azonnal leáll, és minden szkript, amely használja, hibát kap. Ez nem vonható vissza.",
+        "confirm": "Visszavonás",
         "cancel": "Mégse"
       }
     },
@@ -3167,7 +3245,9 @@
       "totpDisabledAudited": "Authenticator kikapcsolás naplózva.",
       "backupCodesRegeneratedAudited": "Tartalék kód generálás naplózva.",
       "connectedAppDisconnected": "Alkalmazás leválasztva.",
-      "notificationSettingsUpdated": "Értesítési beállítások frissítve."
+      "notificationSettingsUpdated": "Értesítési beállítások frissítve.",
+      "apiTokenCreated": "API-token létrehozva.",
+      "apiTokenRevoked": "API-token visszavonva."
     },
     "errors": {
       "avatarRequired": "Válassz profilképet.",
@@ -3192,7 +3272,19 @@
       "connectedAppDisconnectFailed": "Nem sikerült leválasztani az alkalmazást.",
       "noAuthAccount": "Ehhez a taghoz nincs kapcsolt auth fiók.",
       "notificationSettingsUpdateFailed": "Nem sikerült frissíteni az értesítési beállításokat.",
-      "notificationSettingsInvalid": "Ellenőrizd az értesítési ütemezést és a kézbesítési beállításokat."
+      "notificationSettingsInvalid": "Ellenőrizd az értesítési ütemezést és a kézbesítési beállításokat.",
+      "apiTokenInvalidInput": "Ellenőrizd a token adatait, és próbáld újra.",
+      "apiTokenNameRequired": "Adj nevet a tokennek.",
+      "apiTokenNameTooLong": "A név legfeljebb 80 karakter lehet.",
+      "apiTokenScopesRequired": "Válassz legalább egy jogosultságot.",
+      "apiTokenScopeInvalid": "Az egyik választott jogosultság nem érhető el.",
+      "apiTokenAdminScopeForbidden": "Ezt a jogosultságot csak admin adhatja meg.",
+      "apiTokenAdminScopeRequiresTotp": "Admin jogosultságú token létrehozása előtt állíts be hitelesítő alkalmazást.",
+      "apiTokenExpiryInvalid": "Válassz érvényes lejáratot.",
+      "apiTokenTooMany": "Elérted a 20 aktív token korlátját. Vonj vissza egyet, amit már nem használsz.",
+      "apiTokenNotFound": "Ez a token már nem létezik.",
+      "apiTokenCreateFailed": "A tokent nem sikerült létrehozni.",
+      "apiTokenRevokeFailed": "A tokent nem sikerült visszavonni."
     }
   },
   "Payslips": {
