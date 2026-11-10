@@ -187,6 +187,7 @@ Detailed workflow lives in the `/git-workflow` skill (`.claude/skills/git-workfl
 - `docs/mcp-server.md` — the MCP/OAuth layer: scopes, the consent and login hand-off, the toolset
   registry, and §18's record of every place the installed Better Auth / MCP SDK behaviour differs
   from its docs. Read before touching `src/server/mcp`, `app/consent` or the auth plugin list.
+- `docs/rest-api.md` — the `/api/v1` REST API: personal access tokens, scopes, endpoints, errors.
 - `docs/database-schema.md` · `docs/auth-user-management.md` · `docs/frontend-stack.md`
 - `docs/tokens.md` — design tokens · `docs/component-library-audit.md` — component inventory
 - `docs/local-dev-db.md` · `docs/manual-qa-test-plan.md`

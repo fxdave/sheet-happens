@@ -397,6 +397,11 @@ The defaults (`QA`, `Admin`, `Europe/Budapest`) are developer conveniences; set 
 The MCP endpoint is `<BETTER_AUTH_URL>/api/mcp`; the OAuth issuer is `<BETTER_AUTH_URL>/api/auth`.
 Everything else about it is in [`mcp-server.md`](mcp-server.md).
 
+The REST API at `<BETTER_AUTH_URL>/api/v1` needs no configuration: members create personal access
+tokens under _Settings → API tokens_. Your reverse proxy must pass the `Authorization` header
+through and accept request bodies of at least 11 MB (invoice PDFs are capped at 10 MB). See
+[`rest-api.md`](rest-api.md).
+
 ### Leave calendar
 
 | Variable               | Required | Default                        | Description                                                                                                     |
@@ -504,7 +509,7 @@ Timesheet revisions are immutable financial snapshots; treat the database as the
 - **Rate limits** (Better Auth, stored in the database, per client IP): 100 requests per minute in
   general; per 15 minutes: 5 magic-link requests, 5 password-reset requests, 20 e-mail sign-ins,
   10 social sign-ins, 10 passkey attempts per step, 10 two-factor attempts. The MCP endpoint allows
-  120 requests per minute per member. All of these depend on the proxy forwarding the real client IP
+  120 requests per minute per member, the REST API (`/api/v1`) 120 per minute per token. All of these depend on the proxy forwarding the real client IP
   in `X-Forwarded-For`.
 - **Network exposure.** Publish only the reverse proxy. Keep PostgreSQL on a private network and
   the MinIO console (`:9001`) unpublished or behind authentication.

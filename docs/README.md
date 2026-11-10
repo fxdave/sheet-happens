@@ -14,6 +14,8 @@ Some design notes are partly in Hungarian, the product's first language.
   passkey rules.
 - [MCP server](mcp-server.md): how AI agents (Claude and other MCP clients) connect, the scopes they
   get and the security model.
+- [REST API](rest-api.md): personal access tokens, scopes and the `/api/v1` endpoints for scripts
+  and integrations (hours, timesheet submission, invoice upload).
 
 ## Contributing
 
