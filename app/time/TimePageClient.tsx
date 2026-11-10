@@ -5,11 +5,20 @@ import { LazyMotion, MotionConfig } from "motion/react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
-import { useEffect, useMemo, useRef, useState, useTransition, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useOptimistic,
+  useRef,
+  useState,
+  useTransition,
+  type ReactNode,
+} from "react";
 
 import { PeriodNavigator } from "@/src/components/sheet/PeriodNavigator";
 import { ShortcutSheet } from "@/src/components/sheet/ShortcutSheet";
 import { TimeViewPanel } from "@/src/components/sheet/TimeViewPanel";
+import { TimeViewSkeleton } from "@/src/components/sheet/TimeViewSkeleton";
 import { notify } from "@/src/components/sheet/Toast";
 import { Button } from "@/src/components/ui/Button";
 import { usePickerLabels } from "@/src/i18n/picker-labels";
@@ -52,7 +61,7 @@ import {
   resolveViewStops,
   type TimeView,
 } from "./view";
-import { resolvePeriod } from "./periods";
+import { predictPeriod, resolvePeriod } from "./periods";
 import { WeeksView } from "./WeeksView";
 
 const UNDO_TOAST_MS = 6_000;
@@ -122,6 +131,8 @@ function TimePageContent({ data }: { data: TimePageData }) {
   } | null>(null);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const [, setTimerOpen] = useOverlayParam(TIME_OVERLAY_PARAM, TIMER_OVERLAY_VALUE);
+  /* Where a navigation is heading, shown on the click's own frame and dropped when it lands. */
+  const [target, setTarget] = useOptimistic<{ view: TimeView; day: string | null } | null>(null);
 
   const period = resolvePeriod(data, t, locale);
   /* Every payload carries the frame's half: assignments, the timer, suggestions, the draft. */
@@ -137,6 +148,15 @@ function TimePageContent({ data }: { data: TimePageData }) {
         { entries: [], weekStart: data.frame.weekStart, weekEnd: data.frame.weekEnd };
   const stops = useMemo(() => resolveViewStops(frame.projects), [frame.projects]);
   const view = clampView(data.view, stops);
+  const shownView = target ? clampView(target.view, stops) : view;
+  const predicted = target
+    ? predictPeriod(
+        { view: shownView, day: target.day },
+        { todayIso: frame.todayIso, declaredOnly: !stops.includes("days") },
+        t,
+        locale,
+      )
+    : null;
   const trackedProjects = useMemo(
     () => frame.projects.filter((project) => project.trackingMode === "TRACKED"),
     [frame.projects],
@@ -159,6 +179,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
   function navigate(next: TimeView, day: string | null) {
     setNotice(null);
     startNavigation(() => {
+      setTarget({ view: next, day });
       router.push(buildTimeHref(next, day) as Route);
     });
   }
@@ -376,17 +397,20 @@ function TimePageContent({ data }: { data: TimePageData }) {
     href: buildTimeHref(stop),
   }));
 
+  const shown = predicted ?? period;
   const navigator = (
     <PeriodNavigator
-      label={period.label}
-      periodKey={period.key}
+      label={shown.label}
+      periodKey={shown.key}
       direction={0}
-      atToday={period.atToday}
-      month={period.month}
+      atToday={shown.atToday}
+      month={shown.month}
       locale={locale}
+      // Wide enough for a fortnight across a year end, so ‹ › and Today never move.
+      labelClassName="text-center sm:w-[14.75rem]"
       labels={{
-        previous: t("period.previous", { unit: period.unit }),
-        next: t("period.next", { unit: period.unit }),
+        previous: t("period.previous", { unit: shown.unit }),
+        next: t("period.next", { unit: shown.unit }),
         today: t("period.today"),
         atToday: t("period.atToday"),
         pick: t("period.pick"),
@@ -394,7 +418,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
       }}
       shortcuts={{ previous: "←", next: "→", today: "T" }}
       disabled={isNavigating}
-      nextDisabled={period.nextDay === null}
+      nextDisabled={predicted ? predicted.nextDisabled : period.nextDay === null}
       onPrevious={() => step("previous")}
       onNext={() => step("next")}
       onToday={goToToday}
@@ -402,35 +426,45 @@ function TimePageContent({ data }: { data: TimePageData }) {
     />
   );
 
+  /* A fixed width from `sm` up, so a new figure never shifts the bar or makes it wrap. */
   const total = (
-    <p className="flex items-baseline gap-1.5 whitespace-nowrap">
-      <span className="font-ui text-lg font-bold tabular-nums text-foreground sm:text-xl">
-        {formatMinutesAsHours(period.totalMinutes)}
+    <p className="flex min-w-0 items-baseline gap-1.5 whitespace-nowrap sm:w-[13rem] sm:justify-end">
+      <span
+        className={cn(
+          "font-ui text-lg font-bold tabular-nums sm:text-xl",
+          predicted ? "text-subtle-foreground" : "text-foreground",
+        )}
+      >
+        {predicted ? "–" : formatMinutesAsHours(period.totalMinutes)}
         {durationDisplayFormat === "DECIMAL_HOURS" ? " h" : ""}
       </span>
-      <span className="font-ui text-xs font-medium text-muted-foreground">
-        {period.totalCaption}
+      <span className="min-w-0 truncate font-ui text-xs font-medium text-muted-foreground">
+        {shown.totalCaption}
       </span>
     </p>
   );
 
-  const body: ReactNode =
-    data.view === "days" && view === "days" ? (
-      <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
-    ) : data.view === "weeks" && view === "weeks" ? (
-      <WeeksView
-        key={data.calendar.monthStart}
-        frame={data.frame}
-        calendar={data.calendar}
-        month={data.month}
-        actions={actions}
-        onNavigate={navigate}
-      />
-    ) : data.view === "months" && data.layout === "year" ? (
-      <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
-    ) : data.view === "months" ? (
-      <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
-    ) : null;
+  const body: ReactNode = target ? (
+    <TimeViewSkeleton
+      view={shownView}
+      label={t("tabs.loading", { view: t(`tabs.${shownView}`) })}
+    />
+  ) : data.view === "days" && view === "days" ? (
+    <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
+  ) : data.view === "weeks" && view === "weeks" ? (
+    <WeeksView
+      key={data.calendar.monthStart}
+      frame={data.frame}
+      calendar={data.calendar}
+      month={data.month}
+      actions={actions}
+      onNavigate={navigate}
+    />
+  ) : data.view === "months" && data.layout === "year" ? (
+    <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
+  ) : data.view === "months" ? (
+    <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
+  ) : null;
 
   return (
     <div className="grid min-w-0 gap-4">
@@ -485,7 +519,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
       {hasAssignments ? (
         <TimeViewPanel
           tabs={tabs}
-          value={view}
+          value={shownView}
           labels={{ tabs: t("tabs.label"), zoomHint: t("tabs.zoomHint") }}
           navigator={navigator}
           total={total}
@@ -513,7 +547,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
               </Button>
             ) : null
           }
-          pending={isNavigating}
+          pending={isNavigating && !target}
           onTabClick={(value, event) => {
             event.preventDefault();
             switchView(value as TimeView);

@@ -8,7 +8,14 @@ import type {
 
 import type { TimePageData } from "./TimePageClient";
 import type { TimeTrackingTranslator } from "./time-entry-helpers";
-import { resolveMonthAnchorIso, resolveMonthStartIso, shiftMonthStartIso } from "./view";
+import {
+  resolveMonthAnchorIso,
+  resolveMonthStartIso,
+  resolveWeekStartIso,
+  shiftIsoDate,
+  shiftMonthStartIso,
+  type TimeView,
+} from "./view";
 
 /**
  * The period bar's contents, which each view describes and the frame renders the same way:
@@ -119,4 +126,72 @@ export function yearPeriod(year: MemberYearOverview, t: TimeTrackingTranslator) 
     totalMinutes: year.totalMinutes,
     totalCaption: year.year === currentYear ? t("total.year") : t("total.yearPast"),
   } satisfies TimePeriod;
+}
+
+/** The bar's half of a period the client can work out before the data arrives. */
+export type PredictedPeriod = Pick<
+  TimePeriod,
+  "label" | "key" | "atToday" | "unit" | "month" | "totalCaption"
+> & { nextDisabled: boolean };
+
+/**
+ * The period a navigation is heading to, from the URL alone: what the bar shows on the click's own
+ * frame while the view loads. Mirrors the clamps `page.tsx` applies, so the label does not change
+ * again when the data lands.
+ */
+export function predictPeriod(
+  target: { view: TimeView; day: string | null },
+  context: { todayIso: string; declaredOnly: boolean },
+  t: TimeTrackingTranslator,
+  locale: string,
+): PredictedPeriod {
+  const { todayIso } = context;
+  const anchor = target.day && target.day < todayIso ? target.day : todayIso;
+
+  if (target.view === "days") {
+    const lastWeekStart = resolveWeekStartIso(anchor);
+    const rangeStart = shiftIsoDate(lastWeekStart, -7);
+    const atToday = lastWeekStart >= resolveWeekStartIso(todayIso);
+
+    return {
+      label: formatDateRangeLabel(rangeStart, shiftIsoDate(lastWeekStart, 6), locale),
+      key: rangeStart,
+      atToday,
+      nextDisabled: atToday,
+      unit: t("period.unitPage"),
+      month: anchor.slice(0, 7),
+      totalCaption: t("days.periodTotal", { count: 2 }),
+    };
+  }
+
+  const monthStart = resolveMonthStartIso(anchor);
+  const currentMonth = resolveMonthStartIso(todayIso);
+
+  if (target.view === "weeks" || context.declaredOnly) {
+    const atToday = monthStart === currentMonth;
+
+    return {
+      label: formatMonthLabel(monthStart, locale),
+      key: monthStart,
+      atToday,
+      // Weeks stops at the current month; the declared month view does not.
+      nextDisabled: target.view === "weeks" && atToday,
+      unit: t("period.unitMonth"),
+      month: monthStart.slice(0, 7),
+      totalCaption: t("total.month"),
+    };
+  }
+
+  const year = anchor.slice(0, 4);
+  const atToday = year === todayIso.slice(0, 4);
+
+  return {
+    label: year,
+    key: year,
+    atToday,
+    nextDisabled: atToday,
+    unit: t("period.unitYear"),
+    month: `${year}-${atToday ? todayIso.slice(5, 7) : "01"}`,
+    totalCaption: atToday ? t("total.year") : t("total.yearPast"),
+  };
 }

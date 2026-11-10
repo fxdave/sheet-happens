@@ -2379,7 +2379,8 @@
       "days": "Napok",
       "weeks": "Hetek",
       "months": "Hónapok",
-      "zoomHint": "távolítás"
+      "zoomHint": "távolítás",
+      "loading": "{view} betöltése…"
     },
     "days": {
       "weekHeading": "{week}. hét · {range}",

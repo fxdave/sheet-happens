@@ -42,6 +42,8 @@ export type PeriodNavigatorProps = {
   /** Forward would pass today. */
   nextDisabled?: boolean;
   className?: string;
+  /** Sizes the label, e.g. a fixed width so the arrows and Today never move with its text. */
+  labelClassName?: string;
   onPrevious: () => void;
   onNext: () => void;
   onToday: () => void;

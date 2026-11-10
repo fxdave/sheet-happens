@@ -41,6 +41,7 @@ export function PeriodNavigator({
   disabled = false,
   nextDisabled = false,
   className,
+  labelClassName,
   onPrevious,
   onNext,
   onToday,
@@ -70,7 +71,10 @@ export function PeriodNavigator({
                 aria-haspopup="dialog"
                 aria-expanded={pickerOpen}
                 disabled={disabled}
-                className="relative min-w-0 rounded-[var(--radius-pill)] px-3 py-1 text-sm font-medium text-foreground transition-colors duration-[var(--duration-micro)] hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50"
+                className={cn(
+                  "relative min-w-0 rounded-[var(--radius-pill)] px-3 py-1 text-sm font-medium text-foreground transition-colors duration-[var(--duration-micro)] hover:bg-secondary disabled:cursor-not-allowed disabled:opacity-50",
+                  labelClassName,
+                )}
               >
                 <AnimatePresence mode="popLayout" initial={false} custom={direction}>
                   <m.span

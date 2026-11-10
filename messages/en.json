@@ -2379,7 +2379,8 @@
       "days": "Days",
       "weeks": "Weeks",
       "months": "Months",
-      "zoomHint": "zoom out"
+      "zoomHint": "zoom out",
+      "loading": "Loading {view}…"
     },
     "days": {
       "weekHeading": "Week {week} · {range}",
