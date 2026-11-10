@@ -39,15 +39,6 @@ export type {
   DocumentPreviewProps,
   DocumentPreviewRow,
 } from "./DocumentPreview";
-export { CapacityBar, DayColumnHeader, dayColumnHeaderVariants } from "./DayColumnHeader";
-export type {
-  CapacityBarProps,
-  DayColumnHeaderDay,
-  DayColumnHeaderDayState,
-  DayColumnHeaderLabels,
-  DayColumnHeaderProps,
-  DayColumnHeaderVariant,
-} from "./DayColumnHeader";
 export {
   DeclaredHoursRow,
   declaredHoursRowVariants,

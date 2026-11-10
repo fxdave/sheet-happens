@@ -144,9 +144,9 @@ Recommendation: do not implement all immediately. Add them only when real screen
 | ChartPrimitives         | Ready  | ChartFrame, TrendChart, and DistributionBarList provide reusable report/chart building blocks beyond the bar chart card.                                |
 | DashboardCards          | Ready  | Composes data-driven stats, checklist, flagged-user, hero action, and status APIs; covered by Storybook and the app audit route.                        |
 | DayAgenda               | Ready  | The `/time` Day scope: one day's cards, a rail with the target ring, the per-project split and the quick composer slot; edit/delete/continue callbacks. |
-| DayColumnHeader         | Ready  | One day's header at three densities (Week column, ribbon chip, accordion row) sharing one `layoutId`; capacity bar, over-target and locked states.      |
 | DayRibbon               | Ready  | The week as seven chips with a travelling thumb; the Day scope's navigator and the phone's day picker.                                                  |
 | EntryCard               | Ready  | One time entry at two densities: project rail, hover-revealed edit/continue/delete, timer glyph, locked and admin-modified states, saved pulse.         |
+| MonthCalendar           | Ready  | The `/time` Weeks tab: a month by ISO week with day cells, entry chips and week totals; a newest-first week list on phones.                             |
 | MonthHeatNavigator      | Ready  | A month of days by intensity, `grid` semantics with arrow-key movement; cells open a day, row headers a week.                                           |
 | PeriodNavigator         | Ready  | `‹ label › Today` with unit-bound names, a direction-aware label slide, and a month grid under the label.                                               |
 | PeriodTotal             | Ready  | One figure, one unit, one caption; settles in the direction of change and never rolls; status as icon + words.                                          |
