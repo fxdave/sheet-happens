@@ -4280,8 +4280,9 @@ month level until their own redesigns land.
 
 - Weeks shows the project × day grid for one week inside the panel, with week arrows; typing a
   duration into a cell still saves, and a day header opens Days on that day.
-- Months shows the month heat map and the project rows; the declared-hours form saves and uploads
-  proof as before. A heat-map day opens Days, a week row opens Weeks.
+- Months shows the year calendar (see "Time Months View" below). A member whose every assignment is
+  declared sees no tabs and keeps the single month with month arrows: the declared-hours form saves
+  and uploads proof as before.
 
 ## Time Tracking Weeks View (Month Calendar)
 
@@ -4358,10 +4359,12 @@ earlier years loaded below as you scroll.
   earlier month that holds hours but has no timesheet. An employee sees no badges at all.
 - Days on leave carry a small dot and the legend gains a Leave entry; half-day leave is announced
   as such by a screen reader.
+- The period bar shows the year and its total ("this year", or "in total" for an earlier year);
+  ‹ and › step a year, › is disabled on the current year, and Today returns to it.
 - Clicking anywhere on a card outside the day squares opens that month in Weeks; clicking a day
-  opens that day. With the keyboard, Tab reaches each month's header (announced as e.g. "November
-  2026, 46.3 hours, Open") and then its days as one stop: the arrow keys move between days, Home
-  and End jump to the first and last, Enter opens the day.
+  opens that day in Days. With the keyboard, Tab reaches each month's header (announced as e.g. "November
+  2026, 46.3 hours, Open") and then its days as one stop: the arrow keys move between days without
+  also stepping the year, Home and End jump to the first and last, Enter opens the day.
 - Scrolling to the bottom loads the previous year under its own heading and total, with a skeleton
   while it loads; the "Show 2025" button below does the same without scrolling.
 - Nothing overflows its card or the window at 1440, 1280, 1024, 768 and 390 px, in Hungarian and
