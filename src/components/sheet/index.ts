@@ -284,6 +284,8 @@ export type {
   TimerComposerValue,
 } from "./TimerComposer";
 export { TimeViewPanel } from "./TimeViewPanel";
+export { TimeViewSkeleton } from "./TimeViewSkeleton";
+export type { TimeViewSkeletonProps, TimeViewSkeletonView } from "./TimeViewSkeleton";
 export type { TimeViewPanelLabels, TimeViewPanelProps, TimeViewPanelTab } from "./TimeViewPanel";
 export { YearCalendar, yearDayVariants, yearMonthCardVariants } from "./YearCalendar";
 export type {
