@@ -15,9 +15,10 @@ import type { TimeEntrySource } from "./time-entries";
  * own log needs.
  *
  * Member-scoped by construction. `memberId` is required, it is the first thing in the `where`, and
- * there is no "all members" mode — the caller is the member, or an agent acting as one. An
- * admin-wide read is a different function with a different authorization story; folding one in here
- * would put that decision behind an optional field, which is how a cross-member leak gets written.
+ * there is no "all members" mode — the caller is the member, or an agent acting as one. The
+ * admin-wide read is `listTimeEntriesAcrossMembers` below, a different function with a different
+ * authorization story; folding it in here would put that decision behind an optional field, which
+ * is how a cross-member leak gets written.
  */
 
 export type MemberTimeEntryRow = {
@@ -148,21 +149,142 @@ export async function listMemberTimeEntries(
   deps: { db?: TimeEntryQueryClient } = {},
 ): Promise<ListMemberTimeEntriesResult> {
   const db = deps.db ?? (prisma as unknown as TimeEntryQueryClient);
-  const from = normalizeDateOnly(input.from);
-  const to = normalizeDateOnly(input.to);
-  const limit = clampLimit(input.limit);
-  const cursor = input.cursor ? decodeCursor(input.cursor) : null;
+  const page = await readTimeEntryPage(
+    db,
+    { ...input, members: [input.memberId] },
+    timeEntryRowSelect,
+  );
 
-  const where = {
-    memberId: input.memberId,
+  return { ...page, entries: page.entries.map(mapMemberTimeEntryRow) };
+}
+
+export type MemberScopedTimeEntryRow = MemberTimeEntryRow & {
+  memberId: string;
+  memberName: string;
+};
+
+export type ListTimeEntriesAcrossMembersResult = Omit<ListMemberTimeEntriesResult, "entries"> & {
+  entries: MemberScopedTimeEntryRow[];
+};
+
+type CrossMemberTimeEntryRecord = TimeEntryQueryRecord & {
+  memberId: string;
+  member: { displayName: string };
+};
+
+/** `listTimeEntriesAcrossMembers`'s reads: the entry page plus one lookup of the named members. */
+export type CrossMemberTimeEntryQueryClient = {
+  timeEntry: { findMany: (args: unknown) => Promise<CrossMemberTimeEntryRecord[]> };
+  member: { findMany: (args: unknown) => Promise<{ id: string }[]> };
+};
+
+/**
+ * Admin-wide read for any member, so callers must authorize first. `members` is explicit (ids or
+ * `"all"`) so "everyone" is never a forgotten argument; order, cursor and paging match the list above.
+ */
+export async function listTimeEntriesAcrossMembers(
+  input: {
+    members: readonly string[] | "all";
+    from: Date;
+    to: Date;
+    projectId?: string;
+    includeDeclared?: boolean;
+    cursor?: string | null;
+    limit?: number;
+  },
+  deps: { db?: CrossMemberTimeEntryQueryClient } = {},
+): Promise<ListTimeEntriesAcrossMembersResult> {
+  const db = deps.db ?? (prisma as unknown as CrossMemberTimeEntryQueryClient);
+  const members = input.members === "all" ? "all" : [...new Set(input.members)];
+
+  if (members !== "all") {
+    const found = await db.member.findMany({
+      where: { id: { in: members } },
+      select: { id: true },
+    });
+
+    if (found.length !== members.length) {
+      throw new TimeTrackingError("Member not found.", "MEMBER_NOT_FOUND");
+    }
+  }
+
+  const page = await readTimeEntryPage(
+    db,
+    { ...input, members },
+    {
+      ...timeEntryRowSelect,
+      memberId: true,
+      member: { select: { displayName: true } },
+    },
+  );
+
+  return {
+    ...page,
+    entries: page.entries.map((row) => ({
+      ...mapMemberTimeEntryRow(row),
+      memberId: row.memberId,
+      memberName: row.member.displayName,
+    })),
+  };
+}
+
+/** `aggregate` over the same filter the lists use, minus the cursor: a whole range in one read. */
+export type TimeEntryTotalsClient = {
+  timeEntry: {
+    aggregate: (args: unknown) => Promise<{
+      _sum: { durationMinutes: number | null };
+      _count: { _all: number };
+    }>;
+  };
+};
+
+/**
+ * The range total a page cannot give. Same filter as the lists, so paging to the end and summing
+ * agrees with this figure.
+ */
+export async function sumTimeEntries(
+  input: {
+    members: readonly string[] | "all";
+    from: Date;
+    to: Date;
+    projectId?: string;
+    includeDeclared?: boolean;
+  },
+  deps: { db?: TimeEntryTotalsClient } = {},
+): Promise<{ minutes: number; entryCount: number }> {
+  const db = deps.db ?? (prisma as unknown as TimeEntryTotalsClient);
+  const result = await db.timeEntry.aggregate({
+    where: buildRangeWhere(input),
+    _sum: { durationMinutes: true },
+    _count: { _all: true },
+  });
+
+  return { minutes: result._sum.durationMinutes ?? 0, entryCount: result._count._all };
+}
+
+type RangeFilter = {
+  members: readonly string[] | "all";
+  from: Date;
+  to: Date;
+  projectId?: string;
+  includeDeclared?: boolean;
+};
+
+function buildRangeWhere(input: RangeFilter) {
+  const members = input.members;
+
+  return {
+    ...(members === "all"
+      ? {}
+      : { memberId: members.length === 1 ? members[0] : { in: [...members] } }),
     /* A soft-deleted entry is gone as far as every reader is concerned, and no flag on this
        function can bring one back: `includeDeclared` widens the *source* filter and nothing else.
        Keeping the two independent is the point — a "show me everything" argument that also
        resurrected deleted rows would make an agent's summary disagree with the member's own week. */
     deletedAt: null,
     localDate: {
-      gte: from,
-      lte: to,
+      gte: normalizeDateOnly(input.from),
+      lte: normalizeDateOnly(input.to),
     },
     ...(input.projectId ? { projectId: input.projectId } : {}),
     /* A declaration is one month-sized entry sitting on the 1st (see `tracking-mode.ts`), so a
@@ -170,6 +292,21 @@ export async function listMemberTimeEntries(
        month overview's declared band. Excluded by default for that reason, and available for the
        caller deliberately auditing what a month is made of. */
     ...(input.includeDeclared ? {} : { source: { not: "DECLARED" } }),
+  };
+}
+
+async function readTimeEntryPage<Row extends TimeEntryQueryRecord>(
+  db: { timeEntry: { findMany: (args: unknown) => Promise<Row[]> } },
+  input: RangeFilter & { cursor?: string | null; limit?: number },
+  select: Record<string, unknown>,
+) {
+  const from = normalizeDateOnly(input.from);
+  const to = normalizeDateOnly(input.to);
+  const limit = clampLimit(input.limit);
+  const cursor = input.cursor ? decodeCursor(input.cursor) : null;
+
+  const where = {
+    ...buildRangeWhere(input),
     ...(cursor ? { AND: [buildCursorFilter(cursor)] } : {}),
   };
 
@@ -180,7 +317,7 @@ export async function listMemberTimeEntries(
     where,
     orderBy: timeEntryRowOrderBy,
     take: limit + 1,
-    select: timeEntryRowSelect,
+    select,
   });
 
   const page = rows.slice(0, limit);
@@ -191,7 +328,7 @@ export async function listMemberTimeEntries(
       from: formatDateOnly(from),
       to: formatDateOnly(to),
     },
-    entries: page.map(mapMemberTimeEntryRow),
+    entries: page,
     totals: {
       minutes: page.reduce((total, row) => total + row.durationMinutes, 0),
       entryCount: page.length,

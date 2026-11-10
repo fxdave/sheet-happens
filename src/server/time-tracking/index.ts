@@ -149,11 +149,20 @@ export type {
   MemberTrackingContextProject,
   TrackingContextClient,
 } from "./context";
-export { getMemberTimeEntry, listMemberTimeEntries } from "./queries";
+export {
+  getMemberTimeEntry,
+  listMemberTimeEntries,
+  listTimeEntriesAcrossMembers,
+  sumTimeEntries,
+} from "./queries";
 export type {
+  CrossMemberTimeEntryQueryClient,
   ListMemberTimeEntriesResult,
+  ListTimeEntriesAcrossMembersResult,
+  MemberScopedTimeEntryRow,
   MemberTimeEntryRow,
   TimeEntryQueryClient,
+  TimeEntryTotalsClient,
 } from "./queries";
 export { summarizeMemberTime } from "./summary";
 export type {
