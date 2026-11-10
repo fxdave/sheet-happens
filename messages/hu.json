@@ -2402,6 +2402,7 @@
     },
     "timerComposer": {
       "description": "Min dolgozol?",
+      "descriptionCompact": "Min dolgozol?",
       "project": "Projekt: {project}",
       "recent": "Legutóbbi",
       "allProjects": "Minden projekt",

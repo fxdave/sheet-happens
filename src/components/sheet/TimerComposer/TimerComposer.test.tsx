@@ -8,6 +8,7 @@ import type { TimerComposerValue } from "./TimerComposer.types";
 
 const labels = {
   description: "What are you working on?",
+  descriptionCompact: "Working on…",
   project: (name: string) => `Project: ${name}`,
   recent: "Recent",
   allProjects: "All projects",
@@ -74,5 +75,22 @@ describe("TimerComposer", () => {
     await user.click(screen.getByRole("button", { name: "Start timer" }));
 
     expect(onStart).toHaveBeenCalledWith({ projectId: "ops", description: "Deploy" });
+  });
+
+  it("uses the short placeholder on a phone, keeping the full accessible name", () => {
+    const matchMedia = vi.spyOn(window, "matchMedia").mockImplementation(
+      (query: string) =>
+        ({
+          matches: query.includes("max-width"),
+          media: query,
+          addEventListener: () => {},
+          removeEventListener: () => {},
+        }) as unknown as MediaQueryList,
+    );
+    render(<Harness onStart={vi.fn()} />);
+
+    const field = screen.getByRole("combobox", { name: labels.description });
+    expect(field).toHaveAttribute("placeholder", "Working on…");
+    matchMedia.mockRestore();
   });
 });

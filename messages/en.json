@@ -2402,6 +2402,7 @@
     },
     "timerComposer": {
       "description": "What are you working on?",
+      "descriptionCompact": "Working on…",
       "project": "Project: {project}",
       "recent": "Recent",
       "allProjects": "All projects",

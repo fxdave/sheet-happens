@@ -16,6 +16,8 @@ export type TimerComposerValue = {
 export type TimerComposerLabels = {
   /** Placeholder and accessible name of the description field — `What are you working on?` */
   description: string;
+  /** A shorter placeholder below `sm`, where the full one would be cut — `Working on…`. */
+  descriptionCompact?: string;
   /** Accessible name of the project menu trigger, given the selected project. */
   project: (projectName: string) => string;
   recent: string;

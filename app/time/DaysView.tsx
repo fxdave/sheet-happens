@@ -240,6 +240,7 @@ export function DaysView({ days, actions }: DaysViewProps) {
           error={composerError}
           labels={{
             description: t("timerComposer.description"),
+            descriptionCompact: t("timerComposer.descriptionCompact"),
             project: (project) => t("timerComposer.project", { project }),
             recent: t("timerComposer.recent"),
             allProjects: t("timerComposer.allProjects"),

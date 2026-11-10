@@ -18,6 +18,7 @@ const projects = [
 
 const labels = {
   description: "What are you working on?",
+  descriptionCompact: "Working on…",
   project: (name: string) => `Project: ${name}`,
   recent: "Recent",
   allProjects: "All projects",

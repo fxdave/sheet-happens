@@ -3,6 +3,7 @@
 import { AlertTriangle, ChevronDown, Loader2, Play } from "lucide-react";
 import { useState } from "react";
 
+import { useMediaQuery } from "@/src/lib/use-media-query";
 import { cn } from "@/src/lib/utils";
 import {
   Dropdown,
@@ -33,6 +34,8 @@ export function TimerComposer({
   onStart,
 }: TimerComposerProps) {
   const [missingDescription, setMissingDescription] = useState(false);
+  // Resolved before a phone's first paint (see `useMediaQuery`), so the placeholder never flips.
+  const compact = useMediaQuery("(max-width: 39.999rem)");
   const selected = projects.find((project) => project.projectId === value.projectId) ?? projects[0];
   const recent = projects.filter((project) => project.recent);
   const others = projects.filter((project) => !project.recent);
@@ -63,12 +66,14 @@ export function TimerComposer({
           options={suggestions}
           labels={labels.suggestions}
           emptyStateLimit={4}
-          placeholder={labels.description}
+          placeholder={
+            compact && labels.descriptionCompact ? labels.descriptionCompact : labels.description
+          }
           aria-label={labels.description}
           invalid={Boolean(message)}
           disabled={disabled}
           className="min-w-0 flex-1"
-          fieldClassName="h-9 border-0 bg-transparent shadow-none focus-visible:ring-0"
+          fieldClassName="h-9 border-0 bg-transparent text-ellipsis shadow-none focus-visible:ring-0"
           onValueChange={(description) => {
             setMissingDescription(false);
             onValueChange({ projectId: selected?.projectId ?? "", description });
@@ -88,7 +93,7 @@ export function TimerComposer({
                 type="button"
                 disabled={disabled}
                 aria-label={labels.project(selected.name)}
-                className="inline-flex max-w-[45%] min-w-0 shrink items-center gap-1.5 rounded-[var(--radius-pill)] px-2 py-1 text-xs font-medium text-muted-foreground transition-colors duration-[var(--duration-micro)] hover:bg-secondary hover:text-foreground disabled:opacity-50 sm:max-w-[14rem] sm:text-[13px]"
+                className="inline-flex max-w-[min(38%,7.5rem)] min-w-0 shrink items-center gap-1.5 rounded-[var(--radius-pill)] px-2 py-1 text-xs font-medium text-muted-foreground transition-colors duration-[var(--duration-micro)] hover:bg-secondary hover:text-foreground disabled:opacity-50 sm:max-w-[14rem] sm:text-[13px]"
               >
                 <span
                   aria-hidden="true"
