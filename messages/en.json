@@ -2475,7 +2475,8 @@
       "projectDeclaresMonthly": "This project declares its hours monthly.",
       "declaredCorrectedAtMonth": "Declared hours are corrected on the month level.",
       "timeEntryRestoreFailed": "The time entry could not be restored.",
-      "monthCalendarLoadFailed": "The month could not be loaded."
+      "monthCalendarLoadFailed": "The month could not be loaded.",
+      "yearOverviewLoadFailed": "Could not load that year. Try again."
     },
     "fields": {
       "chooseProject": "Choose a project.",

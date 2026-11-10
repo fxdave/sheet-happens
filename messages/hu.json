@@ -2475,7 +2475,8 @@
       "projectDeclaresMonthly": "Ez a projekt havonta vallja be az óráit.",
       "declaredCorrectedAtMonth": "A bevallott órákat a Hónap nézetben lehet javítani.",
       "timeEntryRestoreFailed": "Az időbejegyzést nem sikerült visszaállítani.",
-      "monthCalendarLoadFailed": "A hónapot nem sikerült betölteni."
+      "monthCalendarLoadFailed": "A hónapot nem sikerült betölteni.",
+      "yearOverviewLoadFailed": "Nem sikerült betölteni ezt az évet. Próbáld újra."
     },
     "fields": {
       "chooseProject": "Válassz projektet.",

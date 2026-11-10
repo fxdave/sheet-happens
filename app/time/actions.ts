@@ -22,6 +22,7 @@ import {
   duplicatePreviousWeek,
   getMemberMonthCalendar,
   getMemberTimeDays,
+  getMemberYearOverview,
   HOURS_PROOF_MAX_BYTES,
   parseDateOnly,
   restoreTimeEntry,
@@ -38,6 +39,7 @@ import {
   uploadDeclarationProof,
   type CopyTimeEntriesResult,
   type MemberMonthCalendar,
+  type MemberYearOverview,
   type TimeTrackingRequestMetadata,
 } from "@/src/server/time-tracking";
 
@@ -1044,6 +1046,35 @@ export async function loadMonthCalendarAction(input: {
     return { status: "success", calendar };
   } catch (error) {
     const mapped = mapTimeTrackingActionError(error, t("errors.monthCalendarLoadFailed"), t);
+    return { status: "error", message: mapped.message };
+  }
+}
+
+export type LoadYearOverviewActionResult =
+  { status: "success"; overview: MemberYearOverview } | { status: "error"; message: string };
+
+const loadYearOverviewSchema = z.object({
+  year: z.number().int().min(2000).max(2100),
+});
+
+/** One year of the Months view, for lazily loading the years below the current one. */
+export async function loadYearOverviewAction(input: {
+  year: number;
+}): Promise<LoadYearOverviewActionResult> {
+  const t = await getTranslations("TimeTrackingActions");
+  const parsed = loadYearOverviewSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { status: "error", message: t("errors.yearOverviewLoadFailed") };
+  }
+
+  try {
+    const { member } = await requireActiveAppMemberForAction();
+    const overview = await getMemberYearOverview({ memberId: member.id, year: parsed.data.year });
+
+    return { status: "success", overview };
+  } catch (error) {
+    const mapped = mapTimeTrackingActionError(error, t("errors.yearOverviewLoadFailed"), t);
     return { status: "error", message: mapped.message };
   }
 }
