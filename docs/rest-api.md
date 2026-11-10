@@ -5,12 +5,21 @@
 scopes, authentication), `src/server/rest-api` (the shared request envelope and error mapping), the
 "API tokens" section of `/settings`.
 
-A small, versioned JSON API for scripts and integrations: read hours, submit a contractor timesheet,
-upload its invoice. It authenticates with **personal access tokens** (PATs) only. Every rule the web
+A small, versioned JSON API for scripts and integrations: read hours, follow a contractor
+timesheet's status, submit it for approval, upload its invoice. It authenticates with **personal access tokens** (PATs) only. Every rule the web
 app enforces — period locks, the 24-hour cap, tracking modes, the timesheet state machine, invoice
 validation — applies here unchanged, because the handlers call the same `src/server/*` functions
 the Server Actions call. The handlers themselves only authenticate, check the scope, validate with
 Zod and map results and errors to JSON.
+
+**Where people find it:** the in-app _Help → REST API_ tab (`/help?tab=api`, `app/help/ApiPanel.tsx`)
+shows this deployment's base URL with a copy button, the token steps, the scopes, a curl example per
+endpoint and the error codes, in HU and EN. _Settings → API tokens_ repeats the base URL, links to
+that tab and to the spec, and shows a ready-to-copy curl call next to a new token's one-time secret.
+The machine-readable spec is served unauthenticated at **`GET /api/v1/openapi.json`** (OpenAPI 3.1,
+hand-written in `app/api/v1/openapi.ts`, `servers[0].url` = `authUrls.restApi`, i.e.
+`<BETTER_AUTH_URL>/api/v1`). `app/api/v1/openapi.test.ts` fails if a route under `app/api/v1` is
+missing from it or it lists one that no longer exists.
 
 For AI agents, prefer the MCP server (`docs/mcp-server.md`): it uses OAuth and consent instead of a
 pasted secret.
@@ -36,13 +45,16 @@ there so secret scanners and log reviews can recognise a leaked one.
 | Scope              | Grants                                                                 | Who can grant it |
 | ------------------ | ---------------------------------------------------------------------- | ---------------- |
 | `hours:read`       | `GET /api/v1/hours` for the token owner's own entries                  | any member       |
+| `timesheets:read`  | `GET /api/v1/timesheets` and `GET /api/v1/timesheets/{month}` (own)    | any member       |
 | `timesheets:write` | submit the owner's own contractor timesheet and upload its invoice PDF | any member       |
 | `hours:read:all`   | `GET /api/v1/hours` for other members, several members or everyone     | admins only      |
 
 Only admins are offered `hours:read:all`, and creating a token with it also passes the same
 authenticator-app (TOTP) gate as other admin actions (`requireAdminAppMemberForAction`; skipped only
 by the local-dev `AUTH_SECURITY_SETUP_MODE="optional"`). Reading your own hours needs `hours:read`
-even on an admin token: `hours:read:all` covers cross-member reads only.
+even on an admin token: `hours:read:all` covers cross-member reads only. Scopes are never implied:
+`timesheets:write` does not include `timesheets:read`, and a token created before
+`timesheets:read` existed does not gain it — create a new token.
 
 ### What is checked on every request
 
@@ -197,6 +209,84 @@ Admin, every member, with an audit row per call:
 curl -s "$BASE/hours?from=2026-11-01&to=2026-11-10&memberId=all" -H "Authorization: Bearer $TOKEN"
 ```
 
+### Timesheet status object
+
+`GET /timesheets/{month}`, every entry of `GET /timesheets`, and the `timesheet` field of the submit
+and invoice responses share one shape (`ContractorTimesheetStatus`, `src/server/timesheets/status.ts`):
+
+| Field                                                         | Meaning                                                                                                                                                                                                                                         |
+| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `month`                                                       | `YYYY-MM`                                                                                                                                                                                                                                       |
+| `status`                                                      | `not_submitted` (no timesheet row yet — the UI's derived `not_created`), or the domain status: `submitted`, `rejected`, `approved`, `invoiced`, `invoice_rejected`, `accepted`, `paid`                                                          |
+| `revisionNumber`                                              | current revision, `null` when not submitted                                                                                                                                                                                                     |
+| `submittedAt` `approvedAt` `rejectedAt` `acceptedAt` `paidAt` | ISO timestamps of the current revision, `null` when not reached                                                                                                                                                                                 |
+| `rejectionReason`                                             | the reviewer's reason when the hours were rejected                                                                                                                                                                                              |
+| `totals`                                                      | `{ source, minutes, amount, currencyCode }`. `source: "snapshot"` is the revision's frozen total; `"live"` sums current entries of a not-yet-submitted month (single-month read only); `"none"` in the year list for months without a timesheet |
+| `invoice`                                                     | latest non-cancellation invoice: `{ status, invoiceNumber, role, rejectionReason }`, `status` one of `none`, `uploaded`, `accepted`, `rejected`, `replaced`, `cancelled`, `deleted`                                                             |
+
+"Is it approved yet?" is `status` in `approved`, `invoiced`, `invoice_rejected`, `accepted` or `paid`.
+
+### `GET /api/v1/timesheets/{month}`
+
+Scope `timesheets:read`; contractors only (`403 CONTRACTOR_REQUIRED` otherwise). Reads through
+`getContractorTimesheetMonthlyPreview`, the function behind `/timesheets`, so the figures match
+the page.
+
+```bash
+curl -s "$BASE/timesheets/2026-09" -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "month": "2026-09",
+  "status": "approved",
+  "revisionNumber": 1,
+  "submittedAt": "2026-10-01T09:15:00.000Z",
+  "approvedAt": "2026-10-02T11:15:00.000Z",
+  "rejectedAt": null,
+  "acceptedAt": null,
+  "paidAt": null,
+  "rejectionReason": null,
+  "totals": { "source": "snapshot", "minutes": 9150, "amount": "9981.00", "currencyCode": "EUR" },
+  "invoice": { "status": "none", "invoiceNumber": null, "role": null, "rejectionReason": null }
+}
+```
+
+### `GET /api/v1/timesheets?year=YYYY`
+
+Scope `timesheets:read`; contractors only. All twelve months of `year` (default: the current year
+in the member's timezone), newest first, in one query — the call to poll. `year` must be 2000–2100.
+
+```bash
+curl -s "$BASE/timesheets?year=2026" -H "Authorization: Bearer $TOKEN"
+```
+
+```json
+{
+  "year": 2026,
+  "months": [
+    {
+      "month": "2026-12",
+      "status": "not_submitted",
+      "totals": { "source": "none", "minutes": 0, "amount": null, "currencyCode": null },
+      "…": "…"
+    },
+    { "month": "2026-10", "status": "submitted", "…": "…" },
+    {
+      "month": "2026-08",
+      "status": "paid",
+      "invoice": {
+        "status": "accepted",
+        "invoiceNumber": "CE-202608-01",
+        "role": "original",
+        "rejectionReason": null
+      },
+      "…": "…"
+    }
+  ]
+}
+```
+
 ### `POST /api/v1/timesheets/{month}/submit`
 
 Submits the token owner's contractor timesheet for `month` (`YYYY-MM`) through
@@ -220,7 +310,8 @@ curl -s -X POST "$BASE/timesheets/2026-07/submit" -H "Authorization: Bearer $TOK
   "entryCount": 20,
   "totalMinutes": 8070,
   "totalAmount": "8062.00",
-  "currencyCode": "EUR"
+  "currencyCode": "EUR",
+  "timesheet": { "month": "2026-07", "status": "submitted", "revisionNumber": 1, "…": "…" }
 }
 ```
 
@@ -259,7 +350,8 @@ curl -s "$BASE/timesheets/2026-07/invoice" -H "Authorization: Bearer $TOKEN" \
   "timesheetRevisionId": "e12f0cda-8542-4736-8765-cd5b9d0096cd",
   "invoiceNumber": "INV-2026-07",
   "invoiceRole": "ORIGINAL",
-  "status": "UPLOADED"
+  "status": "UPLOADED",
+  "timesheet": { "month": "2026-07", "status": "invoiced", "…": "…" }
 }
 ```
 
@@ -287,8 +379,13 @@ src/server/rest-api/
   errors.ts         RestApiError, error codes, domain-error tables, toRestApiError
   index.ts          HOURS_QUERY_LIMITS, month/day helpers
 app/api/v1/hours/route.ts
+app/api/v1/timesheets/route.ts                 year list
+app/api/v1/timesheets/[month]/route.ts         one month
 app/api/v1/timesheets/[month]/submit/route.ts
 app/api/v1/timesheets/[month]/invoice/route.ts
+app/api/v1/openapi.ts                          the OpenAPI 3.1 document (+ openapi.json/route.ts, openapi.test.ts)
+src/server/timesheets/status.ts                getContractorTimesheetStatus, listContractorTimesheetStatuses
+app/help/ApiPanel.tsx                          the Help → REST API tab
 app/settings/ApiTokensClient.tsx      the Settings section; actions in app/settings/actions.ts
 prisma/api-tokens.prisma              ApiToken → api_tokens
 ```
@@ -302,4 +399,5 @@ and invoice request metadata.
 
 Adding an endpoint: a route file under `app/api/v1` that calls `handleApiRequest`, a scope in
 `scopes.ts` (plus its HU/EN wording under `Settings.apiTokens.scopes`), any missing domain function
-in `src/server/<domain>`, a colocated `route.test.ts`, and a section here.
+in `src/server/<domain>`, a colocated `route.test.ts`, the operation in `app/api/v1/openapi.ts`
+(the drift test enforces it), the Help tab's endpoint list, and a section here.
