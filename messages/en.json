@@ -2423,7 +2423,11 @@
       "allProjects": "All projects",
       "start": "Start",
       "descriptionRequired": "Describe what you are working on."
-    }
+    },
+    "grid": {},
+    "help": {},
+    "source": {},
+    "breakdown": {}
   },
   "TimeTrackingActions": {
     "success": {
@@ -3438,5 +3442,32 @@
     "listLabel": "Weeks, newest first",
     "emptyList": "Nothing to show yet: this month's days are still ahead.",
     "loadingMore": "Loading earlier weeks…"
+  },
+  "TimeMonthsView": {
+    "monthLabel": "{month}, {hours} hours",
+    "monthLabelEmpty": "{month}, no hours",
+    "daysGroup": "Days of {month}",
+    "dayHours": "{date}, {hours} hours",
+    "dayEmpty": "{date}, nothing logged",
+    "dayUpcoming": "{date}, upcoming",
+    "leaveFull": "on leave",
+    "leaveHalf": "half-day leave",
+    "today": "today",
+    "declaredOne": "+ <name>{project}</name> {hours} declared",
+    "declaredMany": "+ {hours} declared · {count, plural, one {# project} other {# projects}}",
+    "open": "Open",
+    "legend": {
+      "label": "Hours per day",
+      "none": "0 h",
+      "short": "< 4 h",
+      "medium": "4–8 h",
+      "full": "8–10 h",
+      "long": "> 10 h",
+      "upcoming": "Upcoming",
+      "leave": "Leave",
+      "hint": "Select a month to open it in Weeks"
+    },
+    "loadYear": "Show {year}",
+    "loadingYear": "Loading {year}…"
   }
 }

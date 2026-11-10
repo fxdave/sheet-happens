@@ -2423,7 +2423,11 @@
       "allProjects": "Minden projekt",
       "start": "Indítás",
       "descriptionRequired": "Írd le, min dolgozol."
-    }
+    },
+    "grid": {},
+    "help": {},
+    "source": {},
+    "breakdown": {}
   },
   "TimeTrackingActions": {
     "success": {
@@ -3438,5 +3442,32 @@
     "listLabel": "Hetek, a legújabb elöl",
     "emptyList": "Még nincs mit mutatni: a hónap napjai még előttünk vannak.",
     "loadingMore": "Korábbi hetek betöltése…"
+  },
+  "TimeMonthsView": {
+    "monthLabel": "{month}, {hours} óra",
+    "monthLabelEmpty": "{month}, nincs rögzített óra",
+    "daysGroup": "{month} napjai",
+    "dayHours": "{date}, {hours} óra",
+    "dayEmpty": "{date}, nincs rögzítve",
+    "dayUpcoming": "{date}, még hátravan",
+    "leaveFull": "szabadság",
+    "leaveHalf": "félnapos szabadság",
+    "today": "ma",
+    "declaredOne": "+ <name>{project}</name> {hours} bevallva",
+    "declaredMany": "+ {hours} bevallva · {count} projekt",
+    "open": "Nyitott",
+    "legend": {
+      "label": "Napi órák",
+      "none": "0 h",
+      "short": "< 4 h",
+      "medium": "4–8 h",
+      "full": "8–10 h",
+      "long": "> 10 h",
+      "upcoming": "Hátralévő",
+      "leave": "Szabadság",
+      "hint": "Egy hónapra kattintva a Hetek nézetben nyílik meg"
+    },
+    "loadYear": "{year} megjelenítése",
+    "loadingYear": "{year} betöltése…"
   }
 }

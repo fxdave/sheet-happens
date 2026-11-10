@@ -307,3 +307,10 @@ export type {
 } from "./TimerComposer";
 export { TimeViewPanel } from "./TimeViewPanel";
 export type { TimeViewPanelLabels, TimeViewPanelProps, TimeViewPanelTab } from "./TimeViewPanel";
+export { YearCalendar, yearDayVariants, yearMonthCardVariants } from "./YearCalendar";
+export type {
+  YearCalendarMonth,
+  YearCalendarOverview,
+  YearCalendarProps,
+  YearCalendarTimesheetStatus,
+} from "./YearCalendar";
