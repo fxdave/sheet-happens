@@ -4197,6 +4197,72 @@ word used to come out as the family name ("Hi, Szabó!").
   are both greeted by first name.
 - A member with a two-part first name (e.g. "Anna Mária") is greeted with both parts.
 
+## REST API And Personal Access Tokens
+
+Scripts call `https://{DOMAIN_NAME}/api/v1` with a personal access token created in `/settings`.
+The API is a thin layer over the same domain functions as the web app, so every refusal the
+browser gives must come back from the API too. Endpoints, scopes and error codes are in
+`docs/rest-api.md`. Use `curl` with `-H "Authorization: Bearer $TOKEN"`.
+
+### Creating and revoking tokens
+
+1. Sign in as `{CONTRACTOR_EMAIL}`, open `/settings` → API tokens. Confirm the empty state reads
+   correctly in Hungarian and English.
+2. Click Create token. Confirm only Read my hours and Submit my timesheet are offered — no Read
+   everyone's hours. Name it, tick both scopes, choose 90 days, and create it.
+3. Confirm the full token (`sh_pat_…`) is shown once with a Copy token button and a clear warning
+   that it will not be shown again. Copy it, close the dialog, and reopen Create token: the secret is
+   gone and appears nowhere on the page.
+4. Confirm the list shows the name, the `sh_pat_xxxxxxxx…` prefix, both scopes, the creation date,
+   Last used `Never` and the expiry date. Call any endpoint, reload, and confirm Last used is set.
+5. Sign in as `{ADMIN_EMAIL}` (with an authenticator app set up) and confirm Read everyone's hours
+   is offered, marked Admin. Without an authenticator app, creating a token with that scope is
+   refused with a message asking to set one up.
+6. Click Revoke on a token. Confirm a confirmation dialog names it and that Cancel changes nothing.
+   Confirm Revoke removes it from the list, and that the next API call with it answers `401
+TOKEN_REVOKED`.
+7. Check the section at 1440, 1024 and 390 px wide in both languages and both themes: nothing
+   overflows, long Hungarian labels wrap, and the expiry choices wrap instead of squeezing.
+
+### Reading hours
+
+- `GET /api/v1/hours?from=…&to=…` returns only the token owner's entries, with project, date,
+  minutes, description, source, `locked`, page and range totals, and a `nextCursor` when more pages
+  follow. Paging with `limit=2` and the cursor returns every entry once and ends with `null`.
+- A range over 92 days answers `400 RANGE_TOO_LARGE`; a malformed date, a `limit` over 200 or an
+  edited cursor answers `400` naming the field.
+- With a member token, `memberId=<someone else>` or `memberId=all` answers `403
+INSUFFICIENT_SCOPE`. With an admin token holding Read everyone's hours, `memberId=all`, one id or
+  several ids return those members' entries, each labelled with the member; an unknown id answers
+  `404`. Each such call appears in `{AUDIT_LOG_VIEW}` as a cross-member read.
+- Demote that admin to member in `/admin/people`: the same token still reads its owner's own hours,
+  but `memberId=all` now answers `403 ADMIN_REQUIRED`. Promote back and it works again.
+- Deactivate a member who holds a token: the next call answers `401`, and after reactivation the
+  old token still does not work (it was revoked with the deactivation).
+
+### Submitting a timesheet and uploading an invoice
+
+- As `{CONTRACTOR_EMAIL}`, `POST /api/v1/timesheets/{TIMESHEET_MONTH}/submit` on an open month
+  answers `201` with the revision totals; `/timesheets` shows the month submitted and the period is
+  locked on `/time`, exactly as after the Submit button. Admins get the usual notification.
+- Submitting the same month again, or a paid one, answers `409 MONTH_LOCKED`; a month with no
+  entries answers `422`. An employee's token answers `403 CONTRACTOR_REQUIRED`.
+- After an admin approves the month, `POST /api/v1/timesheets/{TIMESHEET_MONTH}/invoice` with
+  `-F invoiceNumber={INVOICE_NUMBER} -F declaredAmount={INVOICE_AMOUNT} -F currencyCode=EUR -F
+file=@{INVOICE_PDF_FILE}` answers `201`, and the admin review shows the invoice exactly as if it
+  had been uploaded from `/timesheets`.
+- A wrong currency answers `400` naming `currencyCode`; a non-PDF answers `415`; a file over 10 MB
+  answers `413`; a JSON body answers `415`; uploading for a month that is not approved, or a second
+  time, answers `409`.
+- In `{AUDIT_LOG_VIEW}` the submission and upload carry the same action names as from the browser,
+  with channel `API` and the token's id, and no row contains the token itself.
+
+### Tokens and sessions stay apart
+
+- Calling `/api/v1/hours` from a signed-in browser tab (cookie only, no header) answers `401`.
+- Calling a browser route such as `/api/notifications` with only a bearer token answers `401`.
+- More than 120 calls a minute with one token answer `429` with a `Retry-After` header.
+
 ## Regression Checklist For Every Release
 
 - An employee can record vacation and sick leave from yesterday on, a half day only on a single
@@ -4374,3 +4440,8 @@ word used to come out as the family name ("Hi, Szabó!").
   and reuses that wording instead of inventing its own.
 - The e-mail field on `/login` shows a neutral `te@example.com` / `you@example.com` placeholder in
   Hungarian and English, never a real company domain.
+- Personal access tokens are created and revoked from `/settings` → API tokens, the secret is shown
+  exactly once, and admin scopes are offered only to admins.
+- `/api/v1` reads only the caller's own hours unless an admin token asks for others, submits and
+  invoices only the caller's own contractor months, and refuses locked months and invalid invoices
+  with the same rules as the web app.
