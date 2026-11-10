@@ -3898,6 +3898,8 @@ Expected result:
 
 ## Time View Scope And Lens Redesign
 
+Superseded by "Time View: Days, Weeks And Months Tabs" below; kept for the history of the redesign.
+
 The `/time` chrome is two rows: row 1 answers _how close_ (a View control with `⊖ ⊕` caps, the
 week-only Agenda ⇄ Grid layout toggle, and the Start timer / New entry actions), row 2 answers
 _when_ (`‹ label ›`, Today, the `⋯` menu, and one period total). Everything below is the design
@@ -4197,6 +4199,90 @@ word used to come out as the family name ("Hi, Szabó!").
   are both greeted by first name.
 - A member with a two-part first name (e.g. "Anna Mária") is greeted with both parts.
 
+## Time View: Days, Weeks And Months Tabs
+
+`/time` opens on **Days**, a scrolling log of days newest first, grouped by ISO week. Three folder
+tabs on the panel's top edge - Days, Weeks, Months - replace the Day/Week/Month scope control, the
+Agenda/Grid lens and the morphing between levels. Weeks and Months still show the old week grid and
+month level until their own redesigns land.
+
+### Frame and URL
+
+- `/time` with nothing in the URL opens Days on every device, also after Weeks or Months was used
+  last; the view is never remembered.
+- The tabs read Days · Weeks · Months, left aligned, each with an icon and a `1`/`2`/`3` key chip
+  (no chips on a phone). The active tab has the panel's own surface and an accent line on top and
+  visibly joins the panel; a quiet `zoom out →` sits beside them on a desktop.
+- Directly under the tabs, one bar: `‹ period ›` and Today on the left; the period total, the timer
+  and `+ Entry` on the right. Switching tabs changes only the period text and the total caption.
+- Each tab, the arrows and Today change the URL to `/time?view=…&day=…`; reload keeps the view and
+  the period, and a copied link opens on it.
+- Old links still land: `?scope=day`, `?scope=week`, `?scope=week&lens=agenda` and `?zoom=day|week`
+  open Days; `?lens=grid` and `?zoom=grid` open Weeks; `?scope=month` and `?zoom=month` open
+  Months; `?week=2025-03-03` opens Days on that fortnight.
+- A tab change shows the new view at once, with at most a brief fade and none with reduced motion
+  turned on in the OS. Nothing slides, scales or morphs.
+- Keys outside a field: `1`/`2`/`3` switch tabs, `←`/`→` (and `K`/`J`) step the period, `T` returns
+  to today, `S` starts or stops the timer, `N` opens a new entry, `?` opens the shortcut sheet,
+  `⌘K` the command palette. None fire while typing or with a menu open.
+- With a timer running, its pill shows in the bar and not a second time in the page header.
+- A member whose every assignment is declared monthly sees Months only, with no tab strip.
+
+### Days
+
+- The log shows at least two ISO weeks: a week heading (`Week 46 · Nov 9 – 15`, total on the right),
+  then day cards newest first. Future days of the current week are not listed.
+- A day card's header reads `Tue, Nov 10` (Hungarian: `nov. 10., kedd`), with a Today badge on
+  today, the day total, a slim bar toward 8 h (amber past 8 h) and a `+` that opens the entry
+  dialog on that date.
+- Each row: project colour bar, description, project name, `09:00–11:00` (or `—` for a
+  duration-only entry), duration, ▷ and ⋯. Clicking anywhere on the row opens the edit dialog;
+  ⋯ offers Edit and Delete, and Delete shows the Undo toast, which restores the row.
+- ▷ starts a timer with that row's project and description. With a timer already running it stops
+  that one (saving it as an entry) and starts the new one in a single step - no "stop the running
+  timer first" error ever appears.
+- The running timer is the first row of today with a live elapsed time and a stop button; stopping
+  it turns it into an ordinary row.
+- The composer at the top ("What are you working on?") offers recent descriptions for the chosen
+  project; the project menu lists recent projects first. ▷ or Enter starts the timer; an empty
+  description shows an inline message instead of starting.
+- A weekend day with nothing logged is one muted line; a past workday with nothing logged warns
+  "Nothing logged on a workday"; a full-day leave says "On leave" and has no `+`.
+- Days in a submitted month show a lock: their rows have no edit, no ⋯ and no `+`, but ▷ still
+  starts a new timer today.
+- An entry an admin corrected shows a shield mark, and a long or overlapping entry a warning mark
+  whose tooltip names the warning.
+- Scrolling to the end loads the previous week with a skeleton while it loads, on a desktop and on
+  a phone; the loading stops at the member's first logged week. Editing or deleting an entry in an
+  older, scrolled-in week updates it in place.
+- `‹ ›` move the fortnight by two weeks; `›` does nothing on the current fortnight; picking a month
+  from the period label jumps to the last fortnight of that month.
+- A member with a declared project sees one quiet line under the composer, "<Project> is declared
+  monthly — see Months", and the link opens Months.
+
+### Phone (390 px)
+
+- The bar is one row: the total on the left, the timer pill on the right with its project name
+  truncated; no navigator and no `+ Entry`.
+- Rows show the description over "project · 09:00–11:00", with the duration and ▷ on the right.
+  Today's header stays pinned under the app header while its entries scroll.
+
+### Overflow
+
+- At 1440, 1280, 1024, 768 and 390 px wide, in English and Hungarian, nothing in the page scrolls
+  sideways and nothing spills out of its box: a two-line description clamps with an ellipsis, a
+  long project name ellipsises, times and durations never wrap, and the bar wraps to a second line
+  before the timer pill is squeezed.
+- Check that with a description of 300+ characters, a pasted URL with no spaces, and a project name
+  such as "Kovács-Szentgyörgyi Ingatlankezelő és Vagyonkezelő Kft.", in both themes.
+
+### Weeks and Months (placeholders)
+
+- Weeks shows the project × day grid for one week inside the panel, with week arrows; typing a
+  duration into a cell still saves, and a day header opens Days on that day.
+- Months shows the month heat map and the project rows; the declared-hours form saves and uploads
+  proof as before. A heat-map day opens Days, a week row opens Weeks.
+
 ## Regression Checklist For Every Release
 
 - An employee can record vacation and sick leave from yesterday on, a half day only on a single
@@ -4374,3 +4460,5 @@ word used to come out as the family name ("Hi, Szabó!").
   and reuses that wording instead of inventing its own.
 - The e-mail field on `/login` shows a neutral `te@example.com` / `you@example.com` placeholder in
   Hungarian and English, never a real company domain.
+- `/time` opens on Days, the tabs switch views, old `?scope=`/`?lens=`/`?zoom=`/`?week=` links land
+  on the matching tab, and ▷ on any row starts (or switches to) a timer without an error.
