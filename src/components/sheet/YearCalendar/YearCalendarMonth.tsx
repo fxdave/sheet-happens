@@ -122,7 +122,9 @@ export function YearCalendarMonth({
     const next = nextDayIndex(event.key, index, days.length);
     if (next === null) return;
 
+    // The page binds ← / → to period steps; inside the grid they move between days instead.
     event.preventDefault();
+    event.stopPropagation();
     setFocusIndex(next);
     dayRefs.current[next]?.focus();
   }

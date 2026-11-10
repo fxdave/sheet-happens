@@ -16,6 +16,13 @@ import type {
 import { yearDayVariants } from "./YearCalendar.variants";
 import { YearCalendarMonth } from "./YearCalendarMonth";
 
+const SKELETON_CARDS = [
+  "",
+  "hidden @min-[28rem]:block",
+  "hidden @min-[40rem]:block",
+  "hidden @min-[56rem]:block",
+];
+
 const MONTH_GRID =
   "grid grid-cols-1 gap-3 @min-[28rem]:grid-cols-2 @min-[40rem]:grid-cols-3 @min-[56rem]:grid-cols-4";
 
@@ -71,8 +78,9 @@ export function YearCalendar({
           <span className="sr-only">{t("loadingYear", { year: nextYear })}</span>
           <Skeleton variant="line" className="mt-4 h-5 w-24" />
           <div className={MONTH_GRID}>
-            {Array.from({ length: 4 }, (_, index) => (
-              <Skeleton key={index} variant="card" className="h-56" />
+            {/* One row at every column count. */}
+            {SKELETON_CARDS.map((visibility, index) => (
+              <Skeleton key={index} variant="card" className={cn("h-56", visibility)} />
             ))}
           </div>
         </div>
