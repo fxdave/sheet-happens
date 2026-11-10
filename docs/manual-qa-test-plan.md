@@ -4282,6 +4282,7 @@ month level until their own redesigns land.
   duration into a cell still saves, and a day header opens Days on that day.
 - Months shows the month heat map and the project rows; the declared-hours form saves and uploads
   proof as before. A heat-map day opens Days, a week row opens Weeks.
+
 ## Time Tracking Weeks View (Month Calendar)
 
 The Weeks level of `/time` shows one calendar month: rows are ISO weeks starting on Monday, each day
@@ -4324,6 +4325,16 @@ newest first, that loads earlier months as it scrolls.
 - Scrolling to the end of the phone list shows a skeleton and then the previous month's weeks; the
   week that straddles the two months appears once, with all its days. Keep scrolling and earlier
   months keep arriving.
+- `/time?view=weeks` shows the month holding `day` (this month without one) inside the tab panel.
+  ‹ and › step a month, › is disabled on the current month, Today returns to it, and a `day` in a
+  future month opens the current one. The bar's total is the month's tracked hours, "this month".
+- Clicking a day or its "+N more" opens Days anchored on that date (`?view=days&day=…`).
+- A member with both tracked and declared projects sees "Declared monthly" under the calendar, with
+  the shown month's declaration form: saving hours and a note and uploading the proof work as on
+  the old month screen, and a month locked by a submitted timesheet shows them read-only. A member
+  with only tracked projects sees no such section.
+- In Days, such a member's hint line reads "<Project> is declared monthly — see Weeks" (HU "…
+  nézd meg a Hetek nézetben") and opens Weeks on the month of the day in view.
 - All of the above reads correctly in Hungarian and English, in both the light and the dark theme.
 
 ## Regression Checklist For Every Release
