@@ -559,22 +559,24 @@ function TimePageContent({ data }: { data: TimePageData }) {
             switchView(value as TimeView);
           }}
         >
-          {target ? (
-            /* A cached view lands within a few frames, so the old body stays for 120 ms before the
-               skeleton replaces it: a fast switch never flashes the skeleton. */
-            <div className="grid min-w-0 [&>*]:[grid-area:1/1]">
-              <div inert className="time-pending-old min-w-0">
-                {loadedBody}
-              </div>
+          {/* A cached view lands within a few frames, so the old body stays for 120 ms before the
+              skeleton covers it: a fast switch never flashes. The wrapper is always there, so
+              the old body is never remounted by the switch itself. */}
+          <div className="grid min-w-0 [&>*]:[grid-area:1/1]">
+            <div
+              inert={target ? true : undefined}
+              className={cn("min-w-0", target && "time-pending-old")}
+            >
+              {loadedBody}
+            </div>
+            {target ? (
               <TimeViewSkeleton
                 className="time-pending-skeleton"
                 view={shownView}
                 label={t("tabs.loading", { view: t(`tabs.${shownView}`) })}
               />
-            </div>
-          ) : (
-            loadedBody
-          )}
+            ) : null}
+          </div>
         </TimeViewPanel>
       ) : (
         <div className="rounded-[var(--radius-lg)] border border-border bg-card px-6 py-12 text-center">
