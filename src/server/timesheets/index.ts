@@ -20,6 +20,13 @@ export {
   TimesheetReviewError,
 } from "./admin-review";
 export { submitContractorTimesheet, TimesheetSubmissionError } from "./submit-timesheet";
+export { getContractorTimesheetStatus, listContractorTimesheetStatuses } from "./status";
+export type {
+  ContractorTimesheetInvoiceStatusValue,
+  ContractorTimesheetStatus,
+  ContractorTimesheetStatusValue,
+  TimesheetStatusListClient,
+} from "./status";
 export type {
   AdminTimesheetFilterOption,
   AdminTimesheetFilters,
