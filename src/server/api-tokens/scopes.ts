@@ -2,7 +2,12 @@
  * Personal access token scopes. Import-free so the settings page, the route handlers and the unit
  * tests can share them without pulling Prisma in.
  */
-export const API_TOKEN_SCOPES = ["hours:read", "timesheets:write", "hours:read:all"] as const;
+export const API_TOKEN_SCOPES = [
+  "hours:read",
+  "timesheets:read",
+  "timesheets:write",
+  "hours:read:all",
+] as const;
 
 export type ApiTokenScope = (typeof API_TOKEN_SCOPES)[number];
 

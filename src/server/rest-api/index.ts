@@ -1,3 +1,4 @@
+import type { ApiTokenActor } from "@/src/server/api-tokens";
 import { parseDateOnly } from "@/src/server/time-tracking";
 import { parseTimesheetMonthParam } from "@/src/server/timesheets";
 
@@ -39,4 +40,15 @@ export function parseMonthPathParam(value: string) {
   }
 
   return periodStart;
+}
+
+/** Timesheets and invoices are contractor-only; say so instead of a 404. */
+export function requireContractor(actor: ApiTokenActor) {
+  if (actor.member.currentProfile !== "CONTRACTOR") {
+    throw new RestApiError(
+      403,
+      "CONTRACTOR_REQUIRED",
+      "Timesheets and invoices are contractor-only; this token belongs to an employee.",
+    );
+  }
 }

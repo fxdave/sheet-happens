@@ -3,10 +3,10 @@ import {
   apiJson,
   handleApiRequest,
   parseMonthPathParam,
-  RestApiError,
+  requireContractor,
 } from "@/src/server/rest-api";
 import { formatDateOnly } from "@/src/server/time-tracking";
-import { submitContractorTimesheet } from "@/src/server/timesheets";
+import { getContractorTimesheetStatus, submitContractorTimesheet } from "@/src/server/timesheets";
 
 type SubmitTimesheetRouteContext = { params: Promise<{ month: string }> };
 
@@ -16,14 +16,7 @@ export async function POST(request: Request, { params }: SubmitTimesheetRouteCon
 
     const periodStart = parseMonthPathParam((await params).month);
 
-    // Same gate as the /timesheets submit action, so an employee hears why rather than a 404.
-    if (actor.member.currentProfile !== "CONTRACTOR") {
-      throw new RestApiError(
-        403,
-        "CONTRACTOR_REQUIRED",
-        "Timesheets are contractor-only; this token belongs to an employee.",
-      );
-    }
+    requireContractor(actor);
 
     const result = await submitContractorTimesheet({
       memberId: actor.member.id,
@@ -43,6 +36,7 @@ export async function POST(request: Request, { params }: SubmitTimesheetRouteCon
         totalMinutes: result.totalMinutes,
         totalAmount: result.totalAmount,
         currencyCode: result.currencyCode,
+        timesheet: await getContractorTimesheetStatus({ memberId: actor.member.id, periodStart }),
       },
       201,
     );

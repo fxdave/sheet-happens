@@ -9,10 +9,12 @@ import {
   apiJson,
   handleApiRequest,
   parseMonthPathParam,
+  requireContractor,
   RestApiError,
   validationError,
 } from "@/src/server/rest-api";
 import { formatDateOnly } from "@/src/server/time-tracking";
+import { getContractorTimesheetStatus } from "@/src/server/timesheets";
 
 type UploadInvoiceRouteContext = { params: Promise<{ month: string }> };
 
@@ -29,13 +31,7 @@ export async function POST(request: Request, { params }: UploadInvoiceRouteConte
 
     const periodStart = parseMonthPathParam((await params).month);
 
-    if (actor.member.currentProfile !== "CONTRACTOR") {
-      throw new RestApiError(
-        403,
-        "CONTRACTOR_REQUIRED",
-        "Contractor invoices are contractor-only; this token belongs to an employee.",
-      );
-    }
+    requireContractor(actor);
 
     const declaredLength = Number(request.headers.get("content-length"));
 
@@ -102,6 +98,7 @@ export async function POST(request: Request, { params }: UploadInvoiceRouteConte
         invoiceNumber: result.invoiceNumber,
         invoiceRole: result.invoiceRole,
         status: result.status,
+        timesheet: await getContractorTimesheetStatus({ memberId: actor.member.id, periodStart }),
       },
       201,
     );

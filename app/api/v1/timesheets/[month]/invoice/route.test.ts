@@ -7,11 +7,17 @@ import { ObjectStorageConfigurationError } from "@/src/server/storage";
 
 const authenticateApiToken = vi.fn();
 const uploadContractorInvoice = vi.fn();
+const getContractorTimesheetStatus = vi.fn();
 
 vi.mock("@/src/server/api-tokens", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/src/server/api-tokens")>()),
   authenticateApiToken: (input: unknown) => authenticateApiToken(input),
   apiTokenRateLimit: { check: () => ({ allowed: true }), reset: () => {} },
+}));
+
+vi.mock("@/src/server/timesheets", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("@/src/server/timesheets")>()),
+  getContractorTimesheetStatus: (input: unknown) => getContractorTimesheetStatus(input),
 }));
 
 vi.mock("@/src/server/invoices", async (importOriginal) => ({
@@ -20,6 +26,8 @@ vi.mock("@/src/server/invoices", async (importOriginal) => ({
 }));
 
 const { POST } = await import("./route");
+
+const STATUS_AFTER = "invoiced";
 
 const PDF = Buffer.from("%PDF-1.4\n%%EOF\n");
 
@@ -50,6 +58,10 @@ function upload(body: BodyInit, month = "2026-09", headers: Record<string, strin
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getContractorTimesheetStatus.mockImplementation(async (input: { periodStart: Date }) => ({
+    month: input.periodStart.toISOString().slice(0, 7),
+    status: STATUS_AFTER,
+  }));
   authenticateApiToken.mockResolvedValue(fakeApiTokenActor());
   uploadContractorInvoice.mockResolvedValue({
     invoiceId: "invoice-1",
@@ -85,6 +97,7 @@ describe("POST /api/v1/timesheets/{month}/invoice", () => {
       invoiceId: "invoice-1",
       invoiceRole: "ORIGINAL",
       status: "UPLOADED",
+      timesheet: { month: "2026-09", status: "invoiced" },
     });
   });
 

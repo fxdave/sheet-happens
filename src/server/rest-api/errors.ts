@@ -5,7 +5,7 @@ import { Prisma } from "@/src/server/db/generated/client";
 import { ContractorInvoiceUploadError } from "@/src/server/invoices";
 import { ObjectStorageConfigurationError } from "@/src/server/storage";
 import { TimeTrackingDateError, TimeTrackingError } from "@/src/server/time-tracking";
-import { TimesheetSubmissionError } from "@/src/server/timesheets";
+import { TimesheetPreviewError, TimesheetSubmissionError } from "@/src/server/timesheets";
 
 /**
  * The REST API's wire errors. English and stable — a client branches on `code`, so renaming one is
@@ -197,6 +197,11 @@ export const INVOICE_UPLOAD_ERRORS: Record<string, DomainMapping> = {
   "Invoice currency is invalid.": { status: 400, code: "VALIDATION", field: "currencyCode" },
 };
 
+export const TIMESHEET_READ_ERRORS: Record<string, DomainMapping> = {
+  "Member not found.": { status: 404, code: "NOT_FOUND" },
+  "Contractor profile required.": { status: 403, code: "CONTRACTOR_REQUIRED" },
+};
+
 const TIME_TRACKING_ERRORS: Partial<Record<TimeTrackingError["code"], DomainMapping>> = {
   MEMBER_NOT_FOUND: { status: 404, code: "NOT_FOUND" },
   INVALID_CURSOR: { status: 400, code: "CURSOR_INVALID", field: "cursor" },
@@ -232,6 +237,12 @@ export function toRestApiError(error: unknown, logLabel: string): RestApiError {
         ...(error.projectNames.length ? { projects: error.projectNames } : {}),
       });
     }
+  }
+
+  if (error instanceof TimesheetPreviewError) {
+    const mapped = TIMESHEET_READ_ERRORS[error.message];
+
+    if (mapped) return fromMapping(mapped, error.message);
   }
 
   if (error instanceof ContractorInvoiceUploadError) {

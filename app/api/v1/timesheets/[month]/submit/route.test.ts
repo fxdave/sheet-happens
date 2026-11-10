@@ -6,6 +6,7 @@ import { TimesheetSubmissionError } from "@/src/server/timesheets";
 
 const authenticateApiToken = vi.fn();
 const submitContractorTimesheet = vi.fn();
+const getContractorTimesheetStatus = vi.fn();
 
 vi.mock("@/src/server/api-tokens", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/src/server/api-tokens")>()),
@@ -16,9 +17,12 @@ vi.mock("@/src/server/api-tokens", async (importOriginal) => ({
 vi.mock("@/src/server/timesheets", async (importOriginal) => ({
   ...(await importOriginal<typeof import("@/src/server/timesheets")>()),
   submitContractorTimesheet: (input: unknown) => submitContractorTimesheet(input),
+  getContractorTimesheetStatus: (input: unknown) => getContractorTimesheetStatus(input),
 }));
 
 const { POST } = await import("./route");
+
+const STATUS_AFTER = "submitted";
 
 function submit(month: string) {
   return POST(
@@ -32,6 +36,10 @@ function submit(month: string) {
 
 beforeEach(() => {
   vi.clearAllMocks();
+  getContractorTimesheetStatus.mockImplementation(async (input: { periodStart: Date }) => ({
+    month: input.periodStart.toISOString().slice(0, 7),
+    status: STATUS_AFTER,
+  }));
   authenticateApiToken.mockResolvedValue(fakeApiTokenActor());
   submitContractorTimesheet.mockResolvedValue({
     timesheetId: "timesheet-1",
@@ -70,6 +78,11 @@ describe("POST /api/v1/timesheets/{month}/submit", () => {
       totalMinutes: 4800,
       totalAmount: "4000.00",
       currencyCode: "EUR",
+      timesheet: { month: "2026-06", status: "submitted" },
+    });
+    expect(getContractorTimesheetStatus).toHaveBeenCalledWith({
+      memberId: "11111111-1111-4111-8111-111111111111",
+      periodStart: new Date("2026-06-01T00:00:00.000Z"),
     });
   });
 
