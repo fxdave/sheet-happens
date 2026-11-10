@@ -105,6 +105,15 @@ export type {
   MonthHeatNavigatorLabels,
   MonthHeatNavigatorProps,
 } from "./MonthHeatNavigator";
+export { MonthCalendar, monthCalendarCellVariants } from "./MonthCalendar";
+export type {
+  MonthCalendarData,
+  MonthCalendarDay,
+  MonthCalendarEntry,
+  MonthCalendarLayout,
+  MonthCalendarProps,
+  MonthCalendarWeek,
+} from "./MonthCalendar";
 export { MonthOverview, monthOverviewRowVariants } from "./MonthOverview";
 export type {
   MonthOverviewDeclaredProject,

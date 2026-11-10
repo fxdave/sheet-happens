@@ -2521,7 +2521,8 @@
       "storageMissing": "Document storage is not configured.",
       "projectDeclaresMonthly": "This project declares its hours monthly.",
       "declaredCorrectedAtMonth": "Declared hours are corrected on the month level.",
-      "timeEntryRestoreFailed": "The time entry could not be restored."
+      "timeEntryRestoreFailed": "The time entry could not be restored.",
+      "monthCalendarLoadFailed": "The month could not be loaded."
     },
     "fields": {
       "chooseProject": "Choose a project.",
@@ -3462,5 +3463,26 @@
       "expiredChallenge": "This second-factor challenge expired. Start sign-in again.",
       "verifyFailed": "Could not verify the second factor."
     }
+  },
+  "TimeWeeksView": {
+    "week": "Week",
+    "weekNumber": "W{week}",
+    "weekGroup": "Week {week}, {total}",
+    "weekRange": "{week} · {range}",
+    "noHours": "–",
+    "moreEntries": "+{count} more",
+    "nothingLogged": "nothing logged",
+    "onLeave": "On leave",
+    "locked": "Locked",
+    "today": "Today",
+    "hours": "{hours, plural, one {# hour} other {# hours}}",
+    "dayName": "{date}, {hours}",
+    "dayNameNothingLogged": "{date}, nothing logged",
+    "dayNameOnLeave": "{date}, on leave",
+    "dayNameLocked": "{name}, locked",
+    "calendarLabel": "{month}, by week",
+    "listLabel": "Weeks, newest first",
+    "emptyList": "Nothing to show yet: this month's days are still ahead.",
+    "loadingMore": "Loading earlier weeks…"
   }
 }

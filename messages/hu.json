@@ -2521,7 +2521,8 @@
       "storageMissing": "A dokumentumtár nincs beállítva.",
       "projectDeclaresMonthly": "Ez a projekt havonta vallja be az óráit.",
       "declaredCorrectedAtMonth": "A bevallott órákat a Hónap nézetben lehet javítani.",
-      "timeEntryRestoreFailed": "Az időbejegyzést nem sikerült visszaállítani."
+      "timeEntryRestoreFailed": "Az időbejegyzést nem sikerült visszaállítani.",
+      "monthCalendarLoadFailed": "A hónapot nem sikerült betölteni."
     },
     "fields": {
       "chooseProject": "Válassz projektet.",
@@ -3462,5 +3463,26 @@
       "expiredChallenge": "Ez a második faktor ellenőrzés lejárt. Kezdd újra a bejelentkezést.",
       "verifyFailed": "Nem sikerült ellenőrizni a második faktort."
     }
+  },
+  "TimeWeeksView": {
+    "week": "Hét",
+    "weekNumber": "{week}. hét",
+    "weekGroup": "{week}. hét, {total}",
+    "weekRange": "{week} · {range}",
+    "noHours": "–",
+    "moreEntries": "+{count} további",
+    "nothingLogged": "nincs rögzítve",
+    "onLeave": "Szabadság",
+    "locked": "Lezárva",
+    "today": "Ma",
+    "hours": "{hours} óra",
+    "dayName": "{date}, {hours}",
+    "dayNameNothingLogged": "{date}, nincs rögzítve",
+    "dayNameOnLeave": "{date}, szabadság",
+    "dayNameLocked": "{name}, lezárva",
+    "calendarLabel": "{month}, hetenként",
+    "listLabel": "Hetek, a legújabb elöl",
+    "emptyList": "Még nincs mit mutatni: a hónap napjai még előttünk vannak.",
+    "loadingMore": "Korábbi hetek betöltése…"
   }
 }
