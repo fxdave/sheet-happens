@@ -149,7 +149,8 @@ export function MonthsView({ week, month, actions, onNavigate }: MonthsViewProps
   const dateLabel = (isoDate: string) => formatDateLabel(isoDate, locale, { style: "full" });
 
   return (
-    <div className="min-w-0 p-3 sm:p-4">
+    // The heat map's seven columns need nearly the full panel width on a 390px phone.
+    <div className="min-w-0 px-1 py-3 sm:p-4">
       <MonthOverview
         projects={month.tracked.map((project) => ({
           projectId: project.projectId,

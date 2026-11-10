@@ -161,8 +161,9 @@ export function DayColumnHeader({
         </>
       ) : (
         <>
-          <span className="flex items-baseline justify-between gap-2">
-            <span className="flex min-w-0 items-baseline gap-1.5">
+          {/* Wraps the total under the date rather than letting the two overlap in a narrow column. */}
+          <span className="flex flex-wrap items-baseline justify-between gap-x-2">
+            <span className="flex shrink-0 items-baseline gap-1.5 whitespace-nowrap">
               <span
                 className={cn(
                   "font-ui text-[10px] font-semibold uppercase tracking-[0.06em]",
@@ -173,7 +174,7 @@ export function DayColumnHeader({
               </span>
               <span className="text-base font-semibold leading-none">{day.dayNumber}</span>
             </span>
-            <span className="flex items-center gap-1">
+            <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
               {total}
               {affordance}
             </span>
