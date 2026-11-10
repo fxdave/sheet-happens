@@ -20,6 +20,7 @@ import type {
   MemberMonthCalendar,
   MemberMonthOverview,
   MemberTimeDays,
+  MemberTimeFrame,
   MemberYearOverview,
   TimeGridEntry,
   TimeGridWeek,
@@ -59,16 +60,16 @@ const UNDO_TOAST_MS = 6_000;
 /** What the server loaded for the view in the URL. */
 export type TimePageData =
   | { view: "days"; days: MemberTimeDays }
-  /** `week` is the frame's half (assignments, timer, drafts); `month` only for a hybrid member. */
+  /** `frame` is the bar's half (assignments, timer, drafts); `month` only for a hybrid member. */
   | {
       view: "weeks";
-      week: TimeGridWeek;
+      frame: MemberTimeFrame;
       calendar: MemberMonthCalendar;
       month: MemberMonthOverview | null;
     }
-  | { view: "months"; week: TimeGridWeek; layout: "year"; year: MemberYearOverview }
+  | { view: "months"; frame: MemberTimeFrame; layout: "year"; year: MemberYearOverview }
   /* A declared-only member has no days to shade; their month carries the declaration form. */
-  | { view: "months"; week: TimeGridWeek; layout: "declared"; month: MemberMonthOverview };
+  | { view: "months"; frame: MemberTimeFrame; layout: "declared"; month: MemberMonthOverview };
 
 /** The entries and date bounds the entry dialog checks a day total and a date against. */
 export type EntryScope = Pick<TimeGridWeek, "entries" | "weekStart" | "weekEnd">;
@@ -124,7 +125,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
 
   const period = resolvePeriod(data, t, locale);
   /* Every payload carries the frame's half: assignments, the timer, suggestions, the draft. */
-  const frame = data.view === "days" ? data.days : data.week;
+  const frame = data.view === "days" ? data.days : data.frame;
   const defaultScope: EntryScope =
     data.view === "days"
       ? {
@@ -132,7 +133,8 @@ function TimePageContent({ data }: { data: TimePageData }) {
           weekStart: data.days.rangeStart,
           weekEnd: data.days.rangeEnd,
         }
-      : data.week;
+      : // Weeks and Months load no entries; the dialog projects day totals in Days only.
+        { entries: [], weekStart: data.frame.weekStart, weekEnd: data.frame.weekEnd };
   const stops = useMemo(() => resolveViewStops(frame.projects), [frame.projects]);
   const view = clampView(data.view, stops);
   const trackedProjects = useMemo(
@@ -418,7 +420,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
     ) : data.view === "weeks" && view === "weeks" ? (
       <WeeksView
         key={data.calendar.monthStart}
-        week={data.week}
+        frame={data.frame}
         calendar={data.calendar}
         month={data.month}
         actions={actions}
@@ -427,7 +429,7 @@ function TimePageContent({ data }: { data: TimePageData }) {
     ) : data.view === "months" && data.layout === "year" ? (
       <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
     ) : data.view === "months" ? (
-      <DeclaredMonthView week={data.week} month={data.month} actions={actions} />
+      <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
     ) : null;
 
   return (

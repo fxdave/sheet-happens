@@ -7,7 +7,7 @@ import { MonthCalendar } from "@/src/components/sheet/MonthCalendar";
 import type {
   MemberMonthCalendar,
   MemberMonthOverview,
-  TimeGridWeek,
+  MemberTimeFrame,
 } from "@/src/server/time-tracking";
 
 import { loadMonthCalendarAction } from "./actions";
@@ -17,8 +17,8 @@ import { useDurationFormatting } from "./use-duration-formatting";
 import { shiftMonthStartIso, type TimeView } from "./view";
 
 type WeeksViewProps = {
-  /** The frame's week, for its locks; the calendar carries everything the body draws. */
-  week: TimeGridWeek;
+  /** The frame, for its locks; the calendar carries everything the body draws. */
+  frame: MemberTimeFrame;
   calendar: MemberMonthCalendar;
   /** The month overview, loaded only for a hybrid member: its declared projects. */
   month: MemberMonthOverview | null;
@@ -30,14 +30,14 @@ type WeeksViewProps = {
  * The Weeks tab: one calendar month by ISO week. A day opens Days anchored there; on a phone the
  * list loads earlier months as it scrolls. A hybrid member's declarations sit underneath.
  */
-export function WeeksView({ week, calendar, month, actions, onNavigate }: WeeksViewProps) {
+export function WeeksView({ frame, calendar, month, actions, onNavigate }: WeeksViewProps) {
   const locale = useLocale();
   const { durationDisplayFormat } = useDurationFormatting();
   const [earlier, setEarlier] = useState<MemberMonthCalendar[]>([]);
   const [hasMore, setHasMore] = useState(calendar.hasEarlier);
   const [loadingMore, startLoading] = useTransition();
   const monthLocked =
-    week.lockedMonthStarts.includes(calendar.monthStart) ||
+    frame.lockedMonthStarts.includes(calendar.monthStart) ||
     calendar.weeks.some((row) => row.days.some((day) => day.inMonth && day.locked));
 
   function loadEarlier() {

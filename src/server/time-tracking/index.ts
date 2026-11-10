@@ -38,6 +38,8 @@ export type {
   TimeTrackingErrorCode,
   TimeTrackingRequestMetadata,
 } from "./time-entries";
+export { getMemberTimeFrame } from "./time-frame";
+export type { MemberTimeFrame } from "./time-frame";
 export { buildTimeDaysWeeks, getMemberTimeDays, TIME_DAYS_PAGE_WEEKS } from "./time-days";
 export type { MemberTimeDays, TimeDaysDay, TimeDaysWeek } from "./time-days";
 export {

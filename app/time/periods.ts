@@ -41,7 +41,7 @@ export function resolvePeriod(
   if (data.view === "days") return daysPeriod(data.days, t, locale);
   if (data.view === "weeks") return weeksPeriod(data.calendar, t, locale);
   if (data.layout === "year") return yearPeriod(data.year, t);
-  return monthsPeriod(data.month, data.week.todayIso, t, locale);
+  return monthsPeriod(data.month, data.frame.todayIso, t, locale);
 }
 
 export function daysPeriod(days: MemberTimeDays, t: TimeTrackingTranslator, locale: string) {

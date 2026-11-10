@@ -9,10 +9,10 @@ import {
   getMemberMonthCalendar,
   getMemberMonthOverview,
   getMemberTimeDays,
-  getMemberWeeklyTimeGrid,
+  getMemberTimeFrame,
   getMemberYearOverview,
-  getMonday,
   getMonthStart,
+  getTodayIsoInTimezone,
   parseDateOnly,
   TimeTrackingDateError,
 } from "@/src/server/time-tracking";
@@ -27,9 +27,12 @@ type TimePageProps = {
 };
 
 export default async function TimePage({ searchParams }: TimePageProps) {
-  const { member } = await requireActiveAppMember("/time");
-  const location = resolveTimeLocation((await searchParams) ?? {});
-  const data = await loadView(member.id, location.view, parseAnchor(location.day));
+  const [{ member }, params] = await Promise.all([
+    requireActiveAppMember("/time"),
+    searchParams ?? Promise.resolve({}),
+  ]);
+  const location = resolveTimeLocation(params);
+  const data = await loadView(member, location.view, parseAnchor(location.day));
 
   return (
     <AppShell
@@ -47,54 +50,58 @@ export default async function TimePage({ searchParams }: TimePageProps) {
   );
 }
 
-/** Only the open view's data is loaded; switching tabs is a navigation. */
+/**
+ * Only the open view's data is loaded, beside the frame's (assignments, timer, draft) rather than
+ * after it. Which view a member may have depends on those assignments, so the rare fallbacks — a
+ * declared-only member — load their month once the frame has said so.
+ */
 async function loadView(
-  memberId: string,
+  member: { id: string; timezone: string },
   view: TimeView,
   anchor: Date | null,
 ): Promise<TimePageData> {
+  const memberId = member.id;
+  const today = parseDateOnly(getTodayIsoInTimezone(member.timezone));
+  const anchorDay = anchor ?? today;
+
   if (view === "days") {
     const days = await getMemberTimeDays({ memberId, endDay: anchor });
-    // A declared-only member has no day log; the month is their whole screen.
     if (clampView(view, resolveViewStops(days.projects)) === "days") return { view, days };
   }
 
-  const week = await getMemberWeeklyTimeGrid({
-    memberId,
-    weekStart: anchor ? getMonday(anchor) : null,
-  });
+  const framePromise = getMemberTimeFrame({ memberId, anchor });
 
-  if (view === "weeks" && clampView(view, resolveViewStops(week.projects)) === "weeks") {
-    const currentMonth = getMonthStart(parseDateOnly(week.todayIso));
-    const anchorMonth = anchor ? getMonthStart(anchor) : currentMonth;
+  if (view === "weeks") {
+    const currentMonth = getMonthStart(today);
+    const anchorMonth = getMonthStart(anchorDay);
     // A future month has nothing to show; it reads as this one, as a future day does in Days.
     const monthStart = anchorMonth > currentMonth ? currentMonth : anchorMonth;
-    // Only a hybrid member has declarations to edit beside the calendar.
-    const hybrid = week.projects.some((project) => project.trackingMode === "DECLARED");
-    const [calendar, month] = await Promise.all([
+    // Started with the calendar so a hybrid member's declarations do not wait for the frame.
+    const monthPromise = getMemberMonthOverview({ memberId, monthStart });
+    monthPromise.catch(() => {});
+    const [frame, calendar] = await Promise.all([
+      framePromise,
       getMemberMonthCalendar({ memberId, monthStart }),
-      hybrid ? getMemberMonthOverview({ memberId, monthStart }) : null,
     ]);
 
-    return { view, week, calendar, month };
-  }
-
-  const anchorDay = anchor ?? parseDateOnly(week.todayIso);
-
-  if (!resolveViewStops(week.projects).includes("days")) {
-    const month = await getMemberMonthOverview({ memberId, monthStart: getMonthStart(anchorDay) });
-    return { view: "months", week, layout: "declared", month };
+    if (clampView(view, resolveViewStops(frame.projects)) === "weeks") {
+      const hybrid = frame.projects.some((project) => project.trackingMode === "DECLARED");
+      return { view, frame, calendar, month: hybrid ? await monthPromise : null };
+    }
   }
 
   // A future year has nothing to show; the period bar's forward arrow stops at this one.
-  const year = Math.min(anchorDay.getUTCFullYear(), Number.parseInt(week.todayIso.slice(0, 4), 10));
+  const year = Math.min(anchorDay.getUTCFullYear(), today.getUTCFullYear());
+  const yearPromise = getMemberYearOverview({ memberId, year });
+  yearPromise.catch(() => {});
+  const frame = await framePromise;
 
-  return {
-    view: "months",
-    week,
-    layout: "year",
-    year: await getMemberYearOverview({ memberId, year }),
-  };
+  if (!resolveViewStops(frame.projects).includes("days")) {
+    const month = await getMemberMonthOverview({ memberId, monthStart: getMonthStart(anchorDay) });
+    return { view: "months", frame, layout: "declared", month };
+  }
+
+  return { view: "months", frame, layout: "year", year: await yearPromise };
 }
 
 function parseAnchor(value: string | null) {
