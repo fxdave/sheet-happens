@@ -10,7 +10,7 @@ import { cn } from "@/src/lib/utils";
 import { MonthPickerPanel } from "../../ui/MonthPicker";
 import { Popover, PopoverContent, PopoverTrigger } from "../../ui/Popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../../ui/Tooltip";
-import { ShortcutChip } from "../TimeScopeBar";
+import { ShortcutChip } from "../../ui/ShortcutChip";
 import type { PeriodNavigatorProps } from "./PeriodNavigator.types";
 
 /**

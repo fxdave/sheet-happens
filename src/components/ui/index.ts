@@ -191,6 +191,8 @@ export type {
   SelectProps,
   SelectSingleProps,
 } from "./Select";
+export { ShortcutChip } from "./ShortcutChip";
+export type { ShortcutChipProps } from "./ShortcutChip";
 export { Skeleton } from "./Skeleton";
 export type { SkeletonProps, SkeletonVariant } from "./Skeleton";
 export { StrengthMeter, evaluatePasswordStrength } from "./StrengthMeter";
