@@ -6,6 +6,7 @@ import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 import {
+  useCallback,
   useEffect,
   useMemo,
   useOptimistic,
@@ -287,15 +288,44 @@ function TimePageContent({ data }: { data: TimePageData }) {
     else if (canLog) setTimerOpen(true);
   }
 
-  const actions: TimeViewActions = {
-    pending: isPending,
+  /* Stable callbacks, so the loaded view below is not re-rendered by a click's optimistic state —
+     re-rendering a year of calendars is most of what a pending switch would otherwise cost. */
+  const latest = useRef({
     openEntry,
     deleteEntry,
     continueEntry,
     stopTimer,
     run,
     notifyResult,
-  };
+    navigate,
+  });
+  useEffect(() => {
+    latest.current = {
+      openEntry,
+      deleteEntry,
+      continueEntry,
+      stopTimer,
+      run,
+      notifyResult,
+      navigate,
+    };
+  });
+  const actions = useMemo<TimeViewActions>(
+    () => ({
+      pending: isPending,
+      openEntry: (state, scope) => latest.current.openEntry(state, scope),
+      deleteEntry: (entryId) => latest.current.deleteEntry(entryId),
+      continueEntry: (entry) => latest.current.continueEntry(entry),
+      stopTimer: () => latest.current.stopTimer(),
+      run: (action) => latest.current.run(action),
+      notifyResult: (result) => latest.current.notifyResult(result),
+    }),
+    [isPending],
+  );
+  const onNavigate = useCallback(
+    (next: TimeView, day: string | null) => latest.current.navigate(next, day),
+    [],
+  );
 
   /* ------------------------------------------------------------------------------------------ */
   /* Keyboard and commands                                                                      */
@@ -454,23 +484,26 @@ function TimePageContent({ data }: { data: TimePageData }) {
     </p>
   );
 
-  const loadedBody: ReactNode =
-    data.view === "days" && view === "days" ? (
-      <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
-    ) : data.view === "weeks" && view === "weeks" ? (
-      <WeeksView
-        key={data.calendar.monthStart}
-        frame={data.frame}
-        calendar={data.calendar}
-        month={data.month}
-        actions={actions}
-        onNavigate={navigate}
-      />
-    ) : data.view === "months" && data.layout === "year" ? (
-      <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
-    ) : data.view === "months" ? (
-      <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
-    ) : null;
+  const loadedBody = useMemo<ReactNode>(
+    () =>
+      data.view === "days" && view === "days" ? (
+        <DaysView key={data.days.anchorDay} days={data.days} actions={actions} />
+      ) : data.view === "weeks" && view === "weeks" ? (
+        <WeeksView
+          key={data.calendar.monthStart}
+          frame={data.frame}
+          calendar={data.calendar}
+          month={data.month}
+          actions={actions}
+          onNavigate={onNavigate}
+        />
+      ) : data.view === "months" && data.layout === "year" ? (
+        <MonthsView key={data.year.year} year={data.year} onNavigate={onNavigate} />
+      ) : data.view === "months" ? (
+        <DeclaredMonthView frame={data.frame} month={data.month} actions={actions} />
+      ) : null,
+    [actions, data, onNavigate, view],
+  );
 
   return (
     <div className="grid min-w-0 gap-4">
