@@ -73,7 +73,8 @@ test("preloads the member's own descriptions into the entry dialog", async ({ pa
 
   // Only the count is announced; the option text reaches a screen reader through
   // `aria-activedescendant` instead, and saying both is the classic combobox double-speak.
-  await expect(page.getByRole("status")).toHaveText(/\d+ suggestions?/);
+  // Inside the dialog: the day log's composer carries a live region of its own.
+  await expect(page.getByRole("dialog").getByRole("status")).toHaveText(/\d+ suggestions?/);
 });
 
 test("accepts a suggestion with the keyboard without logging the entry", async ({ page }) => {
