@@ -1,4 +1,5 @@
 import { isoWeekNumber } from "@/src/lib/date-values";
+import { prisma } from "@/src/server/db/client";
 
 import {
   addDays,
@@ -53,6 +54,8 @@ export type MemberTimeDays = {
   nextAnchor: string | null;
   totalMinutes: number;
   weeks: TimeDaysWeek[];
+  /** Whether anything was logged before `rangeStart`, which is what keeps the scroll going. */
+  hasEarlier: boolean;
   lockedMonthStarts: string[];
   projects: TimeGridAssignedProject[];
   recentProjects: TimeGridAssignedProject[];
@@ -81,9 +84,18 @@ export async function getMemberTimeDays(input: {
   const firstWeekStart = addDays(lastWeekStart, -7 * (weekCount - 1));
   const rangeEnd = getWeekEnd(lastWeekStart);
 
-  const [context, entries] = await Promise.all([
+  const [context, entries, earlier] = await Promise.all([
     loadTrackingRangeContext({ member, from: firstWeekStart, to: rangeEnd }),
     loadRangeEntries({ memberId: member.id, from: firstWeekStart, to: rangeEnd }),
+    prisma.timeEntry.findFirst({
+      where: {
+        memberId: member.id,
+        deletedAt: null,
+        source: { not: "DECLARED" },
+        localDate: { lt: firstWeekStart },
+      },
+      select: { id: true },
+    }),
   ]);
 
   const weekStarts = Array.from({ length: weekCount }, (_, index) =>
@@ -111,6 +123,7 @@ export async function getMemberTimeDays(input: {
     nextAnchor: nextAnchor ? formatDateOnly(nextAnchor < today ? nextAnchor : today) : null,
     totalMinutes: weeks.reduce((sum, week) => sum + week.totalMinutes, 0),
     weeks,
+    hasEarlier: earlier !== null,
     lockedMonthStarts: [...context.lockedMonthStarts],
     projects: context.projects,
     recentProjects: context.recentProjects,

@@ -49,6 +49,7 @@ export function DaysView({ days, actions }: DaysViewProps) {
   const descriptionSuggestions = useDescriptionSuggestions(days.descriptionSuggestions);
   const [earlier, setEarlier] = useState<TimeDaysWeek[]>([]);
   const [earlierProjects, setEarlierProjects] = useState<TimeGridAssignedProject[]>([]);
+  const [hasEarlier, setHasEarlier] = useState(days.hasEarlier);
   const [loadingMore, startLoading] = useTransition();
   const [composer, setComposer] = useState<TimerComposerValue>({ projectId: "", description: "" });
   const [composerError, setComposerError] = useState<string | null>(null);
@@ -91,6 +92,7 @@ export function DaysView({ days, actions }: DaysViewProps) {
       if (cancelled || result.status !== "success") return;
       setEarlier(result.weeks);
       setEarlierProjects(result.projects);
+      setHasEarlier(result.hasEarlier);
     });
     return () => {
       cancelled = true;
@@ -113,6 +115,7 @@ export function DaysView({ days, actions }: DaysViewProps) {
           : [...current, ...result.weeks],
       );
       setEarlierProjects((current) => [...current, ...result.projects]);
+      setHasEarlier(result.hasEarlier);
     });
   }
 
@@ -269,7 +272,7 @@ export function DaysView({ days, actions }: DaysViewProps) {
       durationDisplayFormat={durationDisplayFormat}
       header={header}
       disabled={actions.pending}
-      hasMore
+      hasMore={hasEarlier}
       loadingMore={loadingMore}
       onLoadMore={loadMore}
       labels={{

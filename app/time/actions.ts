@@ -455,6 +455,7 @@ export async function loadEarlierTimeDaysAction(
     return {
       status: "success",
       weeks: page.weeks,
+      hasEarlier: page.hasEarlier,
       projects: page.projects,
       lockedMonthStarts: page.lockedMonthStarts,
     };

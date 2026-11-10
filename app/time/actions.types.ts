@@ -107,6 +107,7 @@ export type LoadEarlierTimeDaysActionResult =
   | {
       status: "success";
       weeks: TimeDaysWeek[];
+      hasEarlier: boolean;
       /** Assignments over the loaded weeks, for entries on projects the first page did not know. */
       projects: TimeGridAssignedProject[];
       lockedMonthStarts: string[];

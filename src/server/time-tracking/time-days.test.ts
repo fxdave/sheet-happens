@@ -3,6 +3,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { TimeGridEntry } from "./time-entries";
 
 const timeEntryFindMany = vi.fn();
+const timeEntryFindFirst = vi.fn();
 const timeEntryGroupBy = vi.fn();
 
 vi.mock("@/src/server/db/client", () => ({
@@ -19,6 +20,7 @@ vi.mock("@/src/server/db/client", () => ({
     projectAssignment: { findMany: vi.fn(async () => []) },
     timeEntry: {
       findMany: (args: unknown) => timeEntryFindMany(args),
+      findFirst: (args: unknown) => timeEntryFindFirst(args),
       groupBy: (args: unknown) => timeEntryGroupBy(args),
     },
     runningTimer: { findUnique: vi.fn(async () => null) },
@@ -100,6 +102,19 @@ describe("getMemberTimeDays", () => {
     timeEntryFindMany.mockResolvedValue([]);
     timeEntryGroupBy.mockReset();
     timeEntryGroupBy.mockResolvedValue([]);
+    timeEntryFindFirst.mockReset();
+    timeEntryFindFirst.mockResolvedValue(null);
+  });
+
+  it("keeps scrolling only while something was logged before the window", async () => {
+    timeEntryFindFirst.mockResolvedValueOnce({ id: "older" });
+    expect((await getMemberTimeDays({ memberId: "member-1", now: NOW })).hasEarlier).toBe(true);
+    expect((await getMemberTimeDays({ memberId: "member-1", now: NOW })).hasEarlier).toBe(false);
+    expect(timeEntryFindFirst).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: expect.objectContaining({ localDate: { lt: dateOnly("2026-11-02") } }),
+      }),
+    );
   });
 
   it("covers two ISO weeks ending with today's and offers no next page", async () => {
@@ -148,7 +163,11 @@ describe("getMemberTimeDays", () => {
   it("excludes declared entries at the query", async () => {
     await getMemberTimeDays({ memberId: "member-1", now: NOW });
 
-    for (const call of [...timeEntryFindMany.mock.calls, ...timeEntryGroupBy.mock.calls]) {
+    for (const call of [
+      ...timeEntryFindMany.mock.calls,
+      ...timeEntryFindFirst.mock.calls,
+      ...timeEntryGroupBy.mock.calls,
+    ]) {
       const args = call[0] as { where: { source?: { not?: string } } };
       expect(args.where.source).toEqual({ not: "DECLARED" });
     }
