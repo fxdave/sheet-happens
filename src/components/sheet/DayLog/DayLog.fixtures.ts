@@ -99,7 +99,11 @@ export const dayLogWeeks: DayLogWeek[] = [
       logEntry("Fix flaky e2e on CI", atlas, "10:00", "12:00", 120),
     ]),
     day("2026-11-03", "Tue, Nov 3", "Tuesday, November 3, 2026", [
-      logEntry("Map layer performance", atlas, "09:00", "18:30", 570),
+      {
+        ...logEntry("Map layer performance", atlas, "09:00", "18:30", 570),
+        adminModified: true,
+        warnings: ["Long continuous session"],
+      },
     ]),
     day("2026-11-02", "Mon, Nov 2", "Monday, November 2, 2026", []),
   ]),
@@ -132,6 +136,7 @@ export const dayLogLabels: DayLogLabels = {
   continue: (entry) => `Continue ${entry.description}`,
   more: (entry) => `More actions for ${entry.description}`,
   locked: "Locked by a submitted timesheet",
+  adminModified: "Changed by an administrator",
   onLeave: "On leave",
   nothingLogged: "Nothing logged",
   nothingLoggedWorkday: "Nothing logged on a workday",

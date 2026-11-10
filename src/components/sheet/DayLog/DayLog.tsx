@@ -8,6 +8,7 @@ import {
   Pencil,
   Play,
   Plus,
+  ShieldCheck,
   Square,
   Trash2,
 } from "lucide-react";
@@ -355,6 +356,26 @@ function ColorBar({ color }: { color: string }) {
   );
 }
 
+function EntryFlags({ entry, labels }: { entry: DayLogEntry; labels: DayLogLabels }) {
+  const warnings = entry.warnings ?? [];
+  if (!entry.adminModified && warnings.length === 0) return null;
+
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1">
+      {entry.adminModified ? (
+        <span role="img" aria-label={labels.adminModified} title={labels.adminModified}>
+          <ShieldCheck className="size-3.5 text-accent" aria-hidden="true" />
+        </span>
+      ) : null}
+      {warnings.length ? (
+        <span role="img" aria-label={warnings.join(" · ")} title={warnings.join(" · ")}>
+          <AlertTriangle className="size-3.5 text-warning" aria-hidden="true" />
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
 function formatRange(start: string | null, end: string | null) {
   return start && end ? `${start}–${end}` : null;
 }
@@ -411,6 +432,9 @@ function EntryRow({
         <p className="mt-0.5 flex min-w-0 items-center text-xs text-muted-foreground @2xl:hidden">
           <span className="min-w-0 truncate">{entry.projectName}</span>
           <span className="shrink-0 whitespace-nowrap tabular-nums">&nbsp;· {range ?? "—"}</span>
+          <span className="ml-1.5 inline-flex shrink-0">
+            <EntryFlags entry={entry} labels={labels} />
+          </span>
         </p>
       </div>
 
@@ -421,6 +445,7 @@ function EntryRow({
           style={{ backgroundColor: entry.projectColor }}
         />
         <span className="min-w-0 truncate">{entry.projectName}</span>
+        <EntryFlags entry={entry} labels={labels} />
       </span>
       <span className="hidden text-[13px] whitespace-nowrap tabular-nums text-muted-foreground @2xl:block">
         {range ?? "—"}

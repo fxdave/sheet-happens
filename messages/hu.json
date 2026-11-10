@@ -2456,14 +2456,15 @@
       "empty": "Még nincs mit mutatni.",
       "declaredElsewhere": "A(z) {project} órái havonta kerülnek bevallásra — <link>nézd meg a Hónapok nézetben</link>",
       "declaredElsewhereMany": "{count, plural, other {# projekt}} órái havonta kerülnek bevallásra — <link>nézd meg a Hónapok nézetben</link>",
-      "periodTotal": "{count} hét"
+      "periodTotal": "{count} hét",
+      "adminModified": "Adminisztrátor módosította"
     },
     "timerComposer": {
       "description": "Min dolgozol?",
       "project": "Projekt: {project}",
       "recent": "Legutóbbi",
       "allProjects": "Minden projekt",
-      "start": "Időmérő indítása",
+      "start": "Indítás",
       "descriptionRequired": "Írd le, min dolgozol."
     }
   },

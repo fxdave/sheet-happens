@@ -2456,14 +2456,15 @@
       "empty": "Nothing to show yet.",
       "declaredElsewhere": "{project} is declared monthly — <link>see Months</link>",
       "declaredElsewhereMany": "{count, plural, other {# projects are}} declared monthly — <link>see Months</link>",
-      "periodTotal": "{count, plural, one {# week} other {# weeks}}"
+      "periodTotal": "{count, plural, one {# week} other {# weeks}}",
+      "adminModified": "Changed by an administrator"
     },
     "timerComposer": {
       "description": "What are you working on?",
       "project": "Project: {project}",
       "recent": "Recent",
       "allProjects": "All projects",
-      "start": "Start timer",
+      "start": "Start",
       "descriptionRequired": "Describe what you are working on."
     }
   },

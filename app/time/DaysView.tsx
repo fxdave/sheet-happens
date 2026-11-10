@@ -28,6 +28,7 @@ import type {
 
 import { loadEarlierTimeDaysAction, switchRunningTimerAction } from "./actions";
 import type { TimeViewActions } from "./TimePageClient";
+import { getEntryWarnings } from "./time-entry-helpers";
 import { useDescriptionSuggestions } from "./use-description-suggestions";
 import { useDurationFormatting } from "./use-duration-formatting";
 import { buildTimeHref, isWeekendIso } from "./view";
@@ -175,11 +176,11 @@ export function DaysView({ days, actions }: DaysViewProps) {
       locked: day.locked,
       onLeave: day.onLeave,
       totalMinutes: day.totalMinutes,
-      entries: day.entries.map(describeEntry),
+      entries: day.entries.map((entry) => describeEntry(entry, day.entries)),
     })),
   }));
 
-  function describeEntry(entry: TimeGridEntry): DayLogEntry {
+  function describeEntry(entry: TimeGridEntry, dayEntries: TimeGridEntry[]): DayLogEntry {
     const project = projectsById.get(entry.projectId);
 
     return {
@@ -191,6 +192,8 @@ export function DaysView({ days, actions }: DaysViewProps) {
       endTime: entry.endTime,
       durationMinutes: entry.durationMinutes,
       locked: entry.locked,
+      adminModified: Boolean(entry.adminModification),
+      warnings: getEntryWarnings(entry, dayEntries, t),
     };
   }
 
@@ -285,6 +288,7 @@ export function DaysView({ days, actions }: DaysViewProps) {
         continue: (entry) => t("card.continue", { description: entry.description }),
         more: (entry) => t("card.more", { description: entry.description }),
         locked: t("card.locked"),
+        adminModified: t("days.adminModified"),
         onLeave: t("days.onLeave"),
         nothingLogged: t("days.nothingLogged"),
         nothingLoggedWorkday: t("days.nothingLoggedWorkday"),

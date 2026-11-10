@@ -13,6 +13,10 @@ export type DayLogEntry = {
   durationMinutes: number;
   /** A submitted timesheet holds it: no edit, no delete — continue still works. */
   locked: boolean;
+  /** An administrator corrected it; the edit dialog says who and why. */
+  adminModified?: boolean;
+  /** `Long continuous session`, `Overlaps another entry` — read out, shown as one mark. */
+  warnings?: string[];
 };
 
 export type DayLogDay = {
@@ -57,6 +61,7 @@ export type DayLogLabels = {
   continue: (entry: DayLogEntry) => string;
   more: (entry: DayLogEntry) => string;
   locked: string;
+  adminModified: string;
   onLeave: string;
   nothingLogged: string;
   nothingLoggedWorkday: string;

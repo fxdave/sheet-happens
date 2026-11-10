@@ -49,7 +49,7 @@ export function TimeViewPanel({
                   <Icon className="size-4 shrink-0" aria-hidden="true" />
                   <span className="truncate">{tab.label}</span>
                   {tab.shortcut ? (
-                    <ShortcutChip variant="tab" className="hidden sm:inline">
+                    <ShortcutChip variant="tab" className="hidden sm:inline" aria-hidden>
                       {tab.shortcut}
                     </ShortcutChip>
                   ) : null}

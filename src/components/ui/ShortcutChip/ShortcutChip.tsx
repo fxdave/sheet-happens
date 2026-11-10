@@ -2,9 +2,15 @@ import { cn } from "@/src/lib/utils";
 import type { ShortcutChipProps } from "./ShortcutChip.types";
 
 /** A key cap. `inline` prefixes a dot for use after a tooltip's text; `tab` sits inside a control. */
-export function ShortcutChip({ children, variant = "inline", className }: ShortcutChipProps) {
+export function ShortcutChip({
+  children,
+  variant = "inline",
+  className,
+  "aria-hidden": ariaHidden,
+}: ShortcutChipProps) {
   const chip = (
     <kbd
+      aria-hidden={ariaHidden}
       className={cn(
         "rounded-[var(--radius-xs)] border border-border-strong px-1 font-ui text-[10px] font-semibold leading-4",
         variant === "inline" ? "bg-background/60" : "text-muted-foreground",

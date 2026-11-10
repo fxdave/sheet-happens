@@ -133,6 +133,18 @@ describe("DayLog", () => {
     expect(handlers.onLoadMore).toHaveBeenCalled();
   });
 
+  it("marks admin corrections and warnings on the row", () => {
+    renderLog();
+
+    const tuesday = screen.getByRole("region", { name: "Tuesday, November 3, 2026" });
+    expect(
+      within(tuesday).getAllByRole("img", { name: "Changed by an administrator" }),
+    ).not.toEqual([]);
+    expect(within(tuesday).getAllByRole("img", { name: "Long continuous session" })).not.toEqual(
+      [],
+    );
+  });
+
   it("adds an entry on a day from its header", async () => {
     const user = userEvent.setup();
     const handlers = renderLog();
