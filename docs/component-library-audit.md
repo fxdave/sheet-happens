@@ -147,7 +147,6 @@ Recommendation: do not implement all immediately. Add them only when real screen
 | DayRibbon               | Ready  | The week as seven chips with a travelling thumb; the Day scope's navigator and the phone's day picker.                                                  |
 | EntryCard               | Ready  | One time entry at two densities: project rail, hover-revealed edit/continue/delete, timer glyph, locked and admin-modified states, saved pulse.         |
 | MonthCalendar           | Ready  | The `/time` Weeks tab: a month by ISO week with day cells, entry chips and week totals; a newest-first week list on phones.                             |
-| MonthHeatNavigator      | Ready  | A month of days by intensity, `grid` semantics with arrow-key movement; cells open a day, row headers a week.                                           |
 | PeriodNavigator         | Ready  | `‹ label › Today` with unit-bound names, a direction-aware label slide, and a month grid under the label.                                               |
 | PeriodTotal             | Ready  | One figure, one unit, one caption; settles in the direction of change and never rolls; status as icon + words.                                          |
 | QuickEntryComposer      | Ready  | Project chips, a duration and a description; validated on submit, Enter adds, More options hands off to the full dialog.                                |

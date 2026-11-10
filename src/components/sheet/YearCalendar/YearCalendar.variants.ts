@@ -1,8 +1,8 @@
 import { cva } from "class-variance-authority";
 
 /**
- * A day square. Shades mix the primary into the card like `MonthHeatNavigator`, so both themes
- * follow the tokens; an overworked day takes the warning fill instead of a fifth teal.
+ * A day square. Shades mix the primary into the card so both themes follow the tokens; an
+ * overworked day takes the warning fill instead of a fifth teal.
  */
 export const yearDayVariants = cva(
   "relative grid aspect-square min-w-0 place-items-center rounded-[4px] font-ui text-[9px] leading-none font-semibold tabular-nums transition-[filter,box-shadow] duration-[var(--duration-micro)] outline-none hover:brightness-110 focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1 focus-visible:ring-offset-card @min-[13rem]:text-[10px] @min-[19rem]:text-xs",

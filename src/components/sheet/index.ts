@@ -81,21 +81,6 @@ export { ManagementViews } from "./ManagementViews";
 export type { ManagementView, ManagementViewsProps } from "./ManagementViews";
 export { MarkdownArticle } from "./MarkdownArticle";
 export type { MarkdownArticleProps } from "./MarkdownArticle";
-export {
-  buildHeatWeeks,
-  countWorkdays,
-  heatCellVariants,
-  heatStep,
-  MonthHeatNavigator,
-} from "./MonthHeatNavigator";
-export type {
-  HeatDay,
-  HeatDayState,
-  HeatDayTotal,
-  HeatWeek,
-  MonthHeatNavigatorLabels,
-  MonthHeatNavigatorProps,
-} from "./MonthHeatNavigator";
 export { MonthCalendar, monthCalendarCellVariants } from "./MonthCalendar";
 export type {
   MonthCalendarData,
@@ -105,13 +90,6 @@ export type {
   MonthCalendarProps,
   MonthCalendarWeek,
 } from "./MonthCalendar";
-export { MonthOverview, monthOverviewRowVariants } from "./MonthOverview";
-export type {
-  MonthOverviewDeclaredProject,
-  MonthOverviewLabels,
-  MonthOverviewProject,
-  MonthOverviewProps,
-} from "./MonthOverview";
 export { MonthRow } from "./MonthRow";
 export type { MonthRowProps } from "./MonthRow";
 export { NotificationPreferences } from "./NotificationPreferences";

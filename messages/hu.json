@@ -2173,9 +2173,6 @@
     "missingEnv": "Hiányzik: {names}"
   },
   "TimeTracking": {
-    "zoom": {
-      "zoomToProject": "{project} · nagyítás"
-    },
     "week": {
       "editEntryNamed": "{entry} szerkesztése",
       "deleteEntryNamed": "{entry} törlése"
@@ -2220,9 +2217,6 @@
       "notSaved": "A piszkozat nincs mentve"
     },
     "month": {
-      "trackedHeading": "Sheet Happensben rögzítve",
-      "emptyTitle": "Ebben a hónapban nincs mit zárni",
-      "emptyDescription": "Ebben a hónapban nem rögzítettél időt, és nincs benne nyitott projekt, amelyre rögzíthetnél.",
       "declaredHeading": "Havonta bevallott"
     },
     "timer": {

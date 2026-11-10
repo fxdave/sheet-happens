@@ -2173,9 +2173,6 @@
     "missingEnv": "Missing: {names}"
   },
   "TimeTracking": {
-    "zoom": {
-      "zoomToProject": "{project} · zoom in"
-    },
     "week": {
       "editEntryNamed": "Edit {entry}",
       "deleteEntryNamed": "Delete {entry}"
@@ -2220,9 +2217,6 @@
       "notSaved": "Draft not saved"
     },
     "month": {
-      "trackedHeading": "Tracked in Sheet Happens",
-      "emptyTitle": "Nothing to close in this month",
-      "emptyDescription": "No hours were logged in this month, and no project is open in it to log any against.",
       "declaredHeading": "Declared monthly"
     },
     "timer": {
