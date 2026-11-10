@@ -20,6 +20,7 @@ import {
   deleteTimeEntry,
   deleteTimeEntryDraft,
   duplicatePreviousWeek,
+  getMemberMonthCalendar,
   getMemberTimeDays,
   HOURS_PROOF_MAX_BYTES,
   markInactiveProjectWeek,
@@ -38,6 +39,7 @@ import {
   updateTimeEntry,
   uploadDeclarationProof,
   type CopyTimeEntriesResult,
+  type MemberMonthCalendar,
   type TimeTrackingRequestMetadata,
 } from "@/src/server/time-tracking";
 
@@ -1089,4 +1091,36 @@ async function getTimeTrackingRequestMetadata(): Promise<TimeTrackingRequestMeta
     userAgent: requestHeaders.get("user-agent"),
     channel: "WEB",
   };
+}
+
+const loadMonthCalendarSchema = z.object({
+  monthStart: z.string().regex(/^\d{4}-\d{2}-01$/),
+});
+
+export type LoadMonthCalendarActionResult =
+  { status: "success"; calendar: MemberMonthCalendar } | { status: "error"; message: string };
+
+/** One month of the Weeks view, for the phone list's lazy loading of earlier months. */
+export async function loadMonthCalendarAction(input: {
+  monthStart: string;
+}): Promise<LoadMonthCalendarActionResult> {
+  const t = await getTranslations("TimeTrackingActions");
+  const parsed = loadMonthCalendarSchema.safeParse(input);
+
+  if (!parsed.success) {
+    return { status: "error", message: t("errors.monthCalendarLoadFailed") };
+  }
+
+  try {
+    const { member } = await requireActiveAppMemberForAction();
+    const calendar = await getMemberMonthCalendar({
+      memberId: member.id,
+      monthStart: parseDateOnly(parsed.data.monthStart, "Choose a valid month."),
+    });
+
+    return { status: "success", calendar };
+  } catch (error) {
+    const mapped = mapTimeTrackingActionError(error, t("errors.monthCalendarLoadFailed"), t);
+    return { status: "error", message: mapped.message };
+  }
 }
