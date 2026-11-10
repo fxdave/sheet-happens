@@ -1,0 +1,20 @@
+/// A personal access token for the public REST API (`app/api/v1`). Only the SHA-256 of the
+/// secret is stored; `token_prefix` is the visible part a member recognises it by.
+model ApiToken {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  memberId    String    @map("member_id") @db.Uuid
+  name        String
+  tokenPrefix String    @map("token_prefix")
+  tokenHash   String    @unique @map("token_hash")
+  /// Granted at creation. Admin scopes are re-checked against the member's live role per request.
+  scopes      String[]
+  expiresAt   DateTime? @map("expires_at") @db.Timestamptz(6)
+  lastUsedAt  DateTime? @map("last_used_at") @db.Timestamptz(6)
+  revokedAt   DateTime? @map("revoked_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Restrict)
+
+  @@index([memberId, createdAt])
+  @@map("api_tokens")
+}

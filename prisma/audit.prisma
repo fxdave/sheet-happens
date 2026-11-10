@@ -9,9 +9,9 @@ model AuditLog {
   requestId     String?  @map("request_id")
   ipAddress     String?  @map("ip_address")
   userAgent     String?  @map("user_agent")
-  /// "WEB" for a browser action, "MCP" for an AI agent acting through the MCP server.
+  /// "WEB" for a browser action, "MCP" for an AI agent, "API" for a personal access token.
   channel       String?
-  /// The OAuth client the MCP call arrived on — a CIMD `client_id` URL, or a registered client id.
+  /// MCP: the OAuth client id (CIMD URL or registered id). API: `api_token:<api_tokens.id>`.
   clientId      String?  @map("client_id")
   createdAt     DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
 

@@ -984,6 +984,26 @@ Key columns:
 - `metadata jsonb not null default '{}'`
 - `error text null`
 
+## API Token Tables
+
+### api_tokens
+
+Personal access tokens for the REST API (`docs/rest-api.md`). Only the hash is stored.
+
+Key columns:
+
+- `id uuid primary key`
+- `member_id uuid not null references members(id)`
+- `name text not null`
+- `token_prefix text not null` (the visible `sh_pat_xxxxxxxx` part)
+- `token_hash text not null unique` (SHA-256 hex of the full token)
+- `scopes text[]` (`hours:read`, `timesheets:write`, `hours:read:all`; admin scopes are re-checked
+  against the member's live role on every request)
+- `expires_at timestamptz null`, `last_used_at timestamptz null`, `revoked_at timestamptz null`
+- `created_at timestamptz not null`
+
+Indexes: unique `(token_hash)`, `(member_id, created_at)`. Rows are revoked, never deleted.
+
 ## Audit Tables
 
 ### audit_logs

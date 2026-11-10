@@ -26,6 +26,7 @@ model Member {
 
   authUser User? @relation(fields: [authUserId], references: [id], onDelete: Restrict)
 
+  apiTokens                         ApiToken[]
   auditLogs                         AuditLog[]                  @relation("AuditActor")
   assignmentRatePeriods             AssignmentRatePeriod[]      @relation("AssignmentRateCreatedBy")
   contractorInvoices                ContractorInvoice[]         @relation("ContractorInvoiceUploadedBy")
