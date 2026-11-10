@@ -4337,6 +4337,39 @@ newest first, that loads earlier months as it scrolls.
   nézd meg a Hetek nézetben") and opens Weeks on the month of the day in view.
 - All of the above reads correctly in Hungarian and English, in both the light and the dark theme.
 
+## Time Months View (Year Calendar)
+
+The Months tab of `/time` shows one year as twelve small month calendars: each day shaded by the
+hours tracked on it, a total per month, declared hours and the contractor's timesheet status, with
+earlier years loaded below as you scroll.
+
+- Days shade in five steps: nothing logged, under 4 h, 4–8 h, 8–10 h, and over 10 h in the warning
+  colour. A weekday with nothing logged has a faint fill; a weekend with nothing logged has none.
+  The legend under the grid matches the squares in both themes.
+- Today is ringed, days after today have a dashed outline, the current month's card is outlined in
+  the primary colour and months after it are dimmed. Use a member in a timezone where the date
+  differs from the server's (e.g. Pacific/Auckland) and confirm "today" follows the member.
+- Each month's total equals the month total on the Weeks/Month level for the same month, including
+  declared hours, and a declared entry is not counted twice. A month with declared hours shows
+  "+ Nimbus 24 h declared" (or "+ 24 h declared · 2 projects" for several); a long project name is
+  shortened with an ellipsis while the hours stay visible.
+- A contractor sees the stored timesheet status on each month (Submitted, Approved, Paid, Invoice
+  rejected …, using the same labels as `/timesheets`) and "Open" on the current month and on any
+  earlier month that holds hours but has no timesheet. An employee sees no badges at all.
+- Days on leave carry a small dot and the legend gains a Leave entry; half-day leave is announced
+  as such by a screen reader.
+- Clicking anywhere on a card outside the day squares opens that month in Weeks; clicking a day
+  opens that day. With the keyboard, Tab reaches each month's header (announced as e.g. "November
+  2026, 46.3 hours, Open") and then its days as one stop: the arrow keys move between days, Home
+  and End jump to the first and last, Enter opens the day.
+- Scrolling to the bottom loads the previous year under its own heading and total, with a skeleton
+  while it loads; the "Show 2025" button below does the same without scrolling.
+- Nothing overflows its card or the window at 1440, 1280, 1024, 768 and 390 px, in Hungarian and
+  English: four columns on a wide screen, then three, two, and one on a phone. Check with a large
+  hours-and-minutes total, a long declared project name and the longest Hungarian status
+  ("Számla elutasítva").
+- Everything above reads correctly in Hungarian and English, in light and dark themes.
+
 ## Regression Checklist For Every Release
 
 - An employee can record vacation and sick leave from yesterday on, a half day only on a single
