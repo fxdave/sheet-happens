@@ -6,7 +6,7 @@ import { cva } from "class-variance-authority";
  */
 export const monthCalendarCellVariants = cva(
   [
-    "group/cell relative flex min-h-[7.75rem] min-w-0 flex-col items-stretch gap-1 border-b border-r border-border p-1.5 text-left",
+    "group/cell relative flex min-h-[7.75rem] min-w-0 flex-col items-stretch gap-1 border-b border-r border-border px-1 py-1.5 text-left xl:px-1.5",
     "transition-colors duration-[var(--duration-micro)] hover:bg-accent-soft/40",
     "focus-visible:z-10 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-ring",
   ],

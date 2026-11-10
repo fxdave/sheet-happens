@@ -17,9 +17,16 @@ import type {
 } from "./MonthCalendar.types";
 import { monthCalendarCellVariants, monthCalendarRowVariants } from "./MonthCalendar.variants";
 
-/** Weekdays share the room; the weekend pair is narrower; the week total is a slim column. */
-const GRID_COLUMNS =
-  "grid-cols-[repeat(5,minmax(0,1fr))_repeat(2,minmax(0,0.55fr))_minmax(3.25rem,4.75rem)]";
+/**
+ * Weekdays share the room and the week total is a slim column. The weekend pair is narrow while
+ * it is empty, and widens once it holds entries so their words still fit a line.
+ */
+const GRID_COLUMNS = {
+  emptyWeekend:
+    "grid-cols-[repeat(5,minmax(0,1fr))_repeat(2,minmax(0,0.55fr))_minmax(3.25rem,4.75rem)]",
+  busyWeekend:
+    "grid-cols-[repeat(5,minmax(0,1fr))_repeat(2,minmax(0,0.8fr))_minmax(3.25rem,4.75rem)]",
+};
 
 /**
  * The Weeks level of `/time`: a calendar month whose rows are ISO weeks. From 768px it is the
@@ -81,6 +88,9 @@ function MonthGrid({
 }: InnerProps) {
   const { t, hours, dayName } = useDayFormatting(locale, durationDisplayFormat);
   const headerDays = calendar.weeks[0]?.days ?? [];
+  const busyWeekend = calendar.weeks.some((week) =>
+    week.days.some((day) => day.isWeekend && day.entries.length > 0),
+  );
 
   return (
     <div
@@ -92,7 +102,11 @@ function MonthGrid({
           timeZone: "UTC",
         }).format(new Date(`${calendar.monthStart}T00:00:00.000Z`)),
       })}
-      className={cn("grid min-w-0", GRID_COLUMNS, className)}
+      className={cn(
+        "grid min-w-0",
+        busyWeekend ? GRID_COLUMNS.busyWeekend : GRID_COLUMNS.emptyWeekend,
+        className,
+      )}
     >
       <div aria-hidden className="col-span-full grid grid-cols-subgrid border-b border-border">
         {headerDays.map((day) => (
@@ -231,9 +245,9 @@ function NothingLogged() {
   const t = useTranslations("TimeWeeksView");
 
   return (
-    <span className="flex min-w-0 items-center gap-1 pl-1 font-ui text-[11px] font-semibold text-warning">
-      <TriangleAlert aria-hidden className="size-3 shrink-0" />
-      <span className="min-w-0 truncate">{t("nothingLogged")}</span>
+    <span className="flex min-w-0 items-start gap-1 pl-1 font-ui text-[11px] font-semibold leading-snug text-warning">
+      <TriangleAlert aria-hidden className="mt-px size-3 shrink-0" />
+      <span className="min-w-0 break-words">{t("nothingLogged")}</span>
     </span>
   );
 }
@@ -259,17 +273,17 @@ function EntryChip({
         } as CSSProperties
       }
       className={cn(
-        "grid min-w-0 grid-cols-[3px_minmax(0,1fr)] gap-[5px] rounded-[var(--radius-xs)] px-[5px] py-[3px] leading-[1.3]",
+        "grid min-w-0 grid-cols-[3px_minmax(0,1fr)] gap-1 rounded-[var(--radius-xs)] px-1 py-[3px] leading-[1.3] xl:gap-[5px] xl:px-[5px]",
         density === "cell" ? "text-[11.5px]" : "text-[13px]",
       )}
     >
       <span aria-hidden className="rounded-full bg-[var(--chip)]" />
       <span className="@container min-w-0">
-        <span className="line-clamp-2 break-words @max-[6.5rem]:line-clamp-3">
+        <span className="line-clamp-2 [overflow-wrap:normal] @max-[6.5rem]:line-clamp-3 @max-[6.5rem]:break-words">
           <span className="float-right ml-1.5 whitespace-nowrap @max-[6.5rem]:float-none @max-[6.5rem]:ml-0 @max-[6.5rem]:block @max-[3.5rem]:hidden font-ui font-semibold tabular-nums text-muted-foreground">
             {hours(entry.durationMinutes)}
           </span>
-          {label}
+          <WrappedText text={label} />
         </span>
         {density === "row" ? (
           <span className="block truncate text-[11.5px] text-muted-foreground">
@@ -278,6 +292,26 @@ function EntryChip({
         ) : null}
       </span>
     </span>
+  );
+}
+
+/** Longest run a chip can hold beside its floated hours without breaking it. */
+const UNBREAKABLE_RUN = 14;
+
+/*
+ * Beside a float Chrome splits any word that does not fit the shortened line, even under
+ * `overflow-wrap: break-word`. So normal words wrap only at spaces, and only runs too long for a
+ * whole line may break anywhere.
+ */
+function WrappedText({ text }: { text: string }) {
+  return text.split(/(\s+)/).map((token, index) =>
+    token.split(/[-‐–—/]/).some((run) => run.length > UNBREAKABLE_RUN) ? (
+      <span key={index} className="[overflow-wrap:anywhere]">
+        {token}
+      </span>
+    ) : (
+      token
+    ),
   );
 }
 
