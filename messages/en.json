@@ -2313,28 +2313,17 @@
       "unitMonth": "month",
       "pick": "Jump to a month",
       "atToday": "You are on today",
-      "unitPage": "2 weeks"
+      "unitPage": "2 weeks",
+      "unitYear": "year"
     },
     "total": {
       "week": "this week",
-      "month": "this month"
+      "month": "this month",
+      "year": "this year",
+      "yearPast": "in total"
     },
     "header": {
       "today": "Today"
-    },
-    "heat": {
-      "label": "Days of {month}",
-      "cell": "{date}, {hours}",
-      "cellDetail": "{hours} · {count, plural, one {# entry} other {# entries}}",
-      "empty": "{date}, nothing logged",
-      "future": "{date}, in the future",
-      "weekRow": "Week {week}",
-      "openWeek": "Open week {week}",
-      "locked": "This month is locked by a submitted timesheet",
-      "legendLogged": "Logged",
-      "legendEmpty": "Nothing logged",
-      "legendFuture": "Future",
-      "outside": "{date}, outside this month"
     },
     "suggestions": {
       "label": "Recent descriptions",

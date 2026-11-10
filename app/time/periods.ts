@@ -3,6 +3,7 @@ import type {
   MemberMonthCalendar,
   MemberMonthOverview,
   MemberTimeDays,
+  MemberYearOverview,
 } from "@/src/server/time-tracking";
 
 import type { TimePageData } from "./TimePageClient";
@@ -39,6 +40,7 @@ export function resolvePeriod(
 ): TimePeriod {
   if (data.view === "days") return daysPeriod(data.days, t, locale);
   if (data.view === "weeks") return weeksPeriod(data.calendar, t, locale);
+  if (data.layout === "year") return yearPeriod(data.year, t);
   return monthsPeriod(data.month, data.week.todayIso, t, locale);
 }
 
@@ -97,5 +99,24 @@ export function monthsPeriod(
     dayForMonth: (picked: string) => `${picked}-01`,
     totalMinutes: month.totalMinutes,
     totalCaption: t("total.month"),
+  } satisfies TimePeriod;
+}
+
+/** A year, stepped to its 1 January; forward stops at the member's current year. */
+export function yearPeriod(year: MemberYearOverview, t: TimeTrackingTranslator) {
+  const currentYear = Number.parseInt(year.todayIso.slice(0, 4), 10);
+  const atToday = year.year >= currentYear;
+
+  return {
+    label: String(year.year),
+    key: String(year.year),
+    previousDay: `${year.year - 1}-01-01`,
+    nextDay: atToday ? null : `${year.year + 1}-01-01`,
+    atToday: year.year === currentYear,
+    unit: t("period.unitYear"),
+    month: `${year.year}-${year.year === currentYear ? year.todayIso.slice(5, 7) : "01"}`,
+    dayForMonth: (picked: string) => `${picked}-01`,
+    totalMinutes: year.totalMinutes,
+    totalCaption: year.year === currentYear ? t("total.year") : t("total.yearPast"),
   } satisfies TimePeriod;
 }

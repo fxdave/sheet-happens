@@ -10,6 +10,7 @@ import {
   getMemberMonthOverview,
   getMemberTimeDays,
   getMemberWeeklyTimeGrid,
+  getMemberYearOverview,
   getMonday,
   getMonthStart,
   parseDateOnly,
@@ -78,12 +79,22 @@ async function loadView(
     return { view, week, calendar, month };
   }
 
-  const month = await getMemberMonthOverview({
-    memberId,
-    monthStart: getMonthStart(anchor ?? parseDateOnly(week.todayIso)),
-  });
+  const anchorDay = anchor ?? parseDateOnly(week.todayIso);
 
-  return { view: "months", week, month };
+  if (!resolveViewStops(week.projects).includes("days")) {
+    const month = await getMemberMonthOverview({ memberId, monthStart: getMonthStart(anchorDay) });
+    return { view: "months", week, layout: "declared", month };
+  }
+
+  // A future year has nothing to show; the period bar's forward arrow stops at this one.
+  const year = Math.min(anchorDay.getUTCFullYear(), Number.parseInt(week.todayIso.slice(0, 4), 10));
+
+  return {
+    view: "months",
+    week,
+    layout: "year",
+    year: await getMemberYearOverview({ memberId, year }),
+  };
 }
 
 function parseAnchor(value: string | null) {

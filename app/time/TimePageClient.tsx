@@ -20,6 +20,7 @@ import type {
   MemberMonthCalendar,
   MemberMonthOverview,
   MemberTimeDays,
+  MemberYearOverview,
   TimeGridEntry,
   TimeGridWeek,
 } from "@/src/server/time-tracking";
@@ -35,6 +36,7 @@ import type { TimeTrackingActionState } from "./actions.types";
 import { DaysView } from "./DaysView";
 import { DraftRestoreBanner } from "./DraftRestoreBanner";
 import { EntryModal, type EntryModalState } from "./EntryModal";
+import { DeclaredMonthView } from "./DeclaredMonthView";
 import { MonthsView } from "./MonthsView";
 import { TimeCommandPalette, type TimeCommand } from "./TimeCommandPalette";
 import { TimerControl } from "./TimerControl";
@@ -64,7 +66,9 @@ export type TimePageData =
       calendar: MemberMonthCalendar;
       month: MemberMonthOverview | null;
     }
-  | { view: "months"; week: TimeGridWeek; month: MemberMonthOverview };
+  | { view: "months"; week: TimeGridWeek; layout: "year"; year: MemberYearOverview }
+  /* A declared-only member has no days to shade; their month carries the declaration form. */
+  | { view: "months"; week: TimeGridWeek; layout: "declared"; month: MemberMonthOverview };
 
 /** The entries and date bounds the entry dialog checks a day total and a date against. */
 export type EntryScope = Pick<TimeGridWeek, "entries" | "weekStart" | "weekEnd">;
@@ -420,8 +424,10 @@ function TimePageContent({ data }: { data: TimePageData }) {
         actions={actions}
         onNavigate={navigate}
       />
+    ) : data.view === "months" && data.layout === "year" ? (
+      <MonthsView key={data.year.year} year={data.year} onNavigate={navigate} />
     ) : data.view === "months" ? (
-      <MonthsView week={data.week} month={data.month} actions={actions} onNavigate={navigate} />
+      <DeclaredMonthView week={data.week} month={data.month} actions={actions} />
     ) : null;
 
   return (

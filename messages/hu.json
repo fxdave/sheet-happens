@@ -2313,28 +2313,17 @@
       "unitMonth": "hónap",
       "pick": "Ugrás egy hónapra",
       "atToday": "A mai napon vagy",
-      "unitPage": "2 hét"
+      "unitPage": "2 hét",
+      "unitYear": "év"
     },
     "total": {
       "week": "ezen a héten",
-      "month": "ebben a hónapban"
+      "month": "ebben a hónapban",
+      "year": "ebben az évben",
+      "yearPast": "összesen"
     },
     "header": {
       "today": "Ma"
-    },
-    "heat": {
-      "label": "{month} napjai",
-      "cell": "{date}, {hours}",
-      "cellDetail": "{hours} · {count} bejegyzés",
-      "empty": "{date}, nincs rögzítve",
-      "future": "{date}, jövőbeli",
-      "weekRow": "{week}. hét",
-      "openWeek": "{week}. hét megnyitása",
-      "locked": "Ezt a hónapot beküldött munkaidő-nyilvántartás zárolja",
-      "legendLogged": "Rögzítve",
-      "legendEmpty": "Nincs rögzítve",
-      "legendFuture": "Jövőbeli",
-      "outside": "{date}, nem ebben a hónapban"
     },
     "suggestions": {
       "label": "Legutóbbi leírások",

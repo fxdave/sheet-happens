@@ -132,7 +132,10 @@ test("switches views from the tabs and the digit keys", async ({ page }) => {
     "page",
     { timeout: 60_000 },
   );
-  await expect(page.getByRole("button", { name: "Previous month" })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Previous year" })).toBeVisible();
+  // The year calendar: twelve month cards, each a button named by its month and hours.
+  await expect(page.getByRole("button", { name: /^January \d{4}, / })).toBeVisible();
+  await expect(page.getByRole("group", { name: /^Days of December \d{4}$/ })).toBeVisible();
 });
 
 test("lands old scope and lens links on the matching tab", async ({ page }) => {
