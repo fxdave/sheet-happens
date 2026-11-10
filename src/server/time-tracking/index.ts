@@ -77,6 +77,15 @@ export type {
   MonthOverviewDeclarationRow,
   MonthOverviewProject,
 } from "./month-overview";
+export { buildMonthCalendar, getMemberMonthCalendar } from "./month-calendar";
+export type {
+  BuildMonthCalendarInput,
+  MemberMonthCalendar,
+  MonthCalendarDay,
+  MonthCalendarEntry,
+  MonthCalendarEntryRow,
+  MonthCalendarWeek,
+} from "./month-calendar";
 export {
   buildHoursProofObjectKey,
   DeclarationError,
